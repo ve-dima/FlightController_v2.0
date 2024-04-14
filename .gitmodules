@@ -1,0 +1,7 @@
+[submodule "CMSIS"]
+	path = CMSIS
+	url = https://github.com/ARM-software/CMSIS_5
+[submodule "CMSIS_G4"]
+	path = CMSIS_G4
+	url = https://github.com/STMicroelectronics/cmsis_device_g4
+	branch = v1.2.3
