@@ -1,0 +1,27 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cmake",
+			"label": "Build PC version",
+			"command": "build",
+			"targets": [
+				"FlightController"
+			],
+			"group": "build",
+			"problemMatcher": [],
+			"detail": "CMake template build task",
+		},
+		{
+			"type": "cmake",
+			"label": "Build STM32 version",
+			"command": "build",
+			"targets": [
+				"FlightController.elf"
+			],
+			"group": "build",
+			"problemMatcher": [],
+			"detail": "CMake template build task"
+		}
+	]
+}
