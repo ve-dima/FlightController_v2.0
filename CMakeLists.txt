@@ -18,6 +18,7 @@ set(CXX_CF
         -fsingle-precision-constant
 
         -Wall
+        -Werror
 )
 
 project(FlightController C CXX ASM)
