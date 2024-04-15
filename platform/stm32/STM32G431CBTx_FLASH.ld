@@ -183,3 +183,14 @@ SECTIONS
 }
 
 
+SECTIONS
+{
+.param_s :
+    {
+        . = ALIGN(4);
+        __param_start = .;
+        KEEP(*(.param))
+        KEEP(*(.param.*))
+        __param_stop = .;
+    }  > FLASH
+}

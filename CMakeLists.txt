@@ -13,7 +13,8 @@ set(CXX_CF
         -fdata-sections
         -ffunction-sections
         -fno-common
-        -fno-exceptions -fno-rtti
+        -fno-exceptions
+        $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
         -fmessage-length=0
         -fsingle-precision-constant
 
@@ -28,18 +29,17 @@ set(MCU -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard)
 file(GLOB_RECURSE SOURCES
         "CMSIS_G4/Source/system_stm32g4xx.c"
         "CMSIS_G4/Source/Templates/gcc/startup_stm32g431xx.s"
-        "src/main.cpp"
-        "src/platform/stm32/*.cpp"
+        "src/*"
+        "platform/stm32/*.cpp"
 )
 
-set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/src/platform/stm32/STM32G431CBTx_FLASH.ld)
+set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/platform/stm32/STM32G431CBTx_FLASH.ld)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
 target_compile_options(${PROJECT_NAME}.elf
         PUBLIC
         -specs=nano.specs
-        -specs=nosys.specs
         ${MCU}
         ${CXX_CF}
 )
@@ -56,9 +56,8 @@ target_compile_definitions(${PROJECT_NAME}.elf
         -DF_CPU=16000000
 )
  
-target_link_options(${PROJECT_NAME}.elf PUBLIC ${MCU} -specs=nano.specs -specs=nosys.specs)
+target_link_options(${PROJECT_NAME}.elf PUBLIC ${MCU} --specs=nano.specs --specs=nosys.specs)
 target_link_options(${PROJECT_NAME}.elf PUBLIC -T ${LINKER_SCRIPT})
-target_link_options(${PROJECT_NAME}.elf PUBLIC -lc -lm -lnosys )
 target_link_options(${PROJECT_NAME}.elf PUBLIC -Wl,--print-memory-usage,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map)
 
 target_include_directories(${PROJECT_NAME}.elf 
@@ -66,7 +65,7 @@ target_include_directories(${PROJECT_NAME}.elf
                 "include"
                 "lib"
                 "src/*"
-                "src/platform/stm32"
+                "platform/stm32"
 )
  
 set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
@@ -81,13 +80,15 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
 )
 
 # For pc
-
 file(GLOB_RECURSE SOURCES
-        "src/main.cpp"
-        "src/platform/pc/*.cpp"
+        "src/*"
+        "platform/pc/*.cpp"
 )
+set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/platform/pc/sections.ld)
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -T ${LINKER_SCRIPT}") 
+
+add_executable(${PROJECT_NAME} ${SOURCES} ${LINKER_SCRIPT})
 
 target_compile_options(${PROJECT_NAME}
         PUBLIC
@@ -99,5 +100,6 @@ target_include_directories(${PROJECT_NAME}
                 "include"
                 "lib"
                 "src/*"
-                "src/platform/pc"
+                "platform/pc"
 )
+target_link_options(${PROJECT_NAME} PUBLIC -Wl,--print-memory-usage,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map)
