@@ -33,8 +33,8 @@ void setup()
                        GPIO_OSPEEDR_OSPEED9);
     GPIOB->OTYPER |= (GPIO_OTYPER_OT8 |
                       GPIO_OTYPER_OT9);
-    GPIOB->PUPDR |= (GPIO_PUPDR_PUPD8_1 |
-                     GPIO_PUPDR_PUPD9_1);
+    GPIOB->PUPDR |= (GPIO_PUPDR_PUPD8_0 |
+                     GPIO_PUPDR_PUPD9_0);
     GPIOB->AFR[1] |= ((4 << GPIO_AFRH_AFSEL8_Pos) |
                       (4 << GPIO_AFRH_AFSEL9_Pos));
 
