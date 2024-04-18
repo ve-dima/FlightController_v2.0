@@ -182,7 +182,7 @@ SECTIONS
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }
 
-
+/*
 SECTIONS
 {
 .param_s :
@@ -194,3 +194,4 @@ SECTIONS
         __param_stop = .;
     }  > FLASH
 }
+*/
