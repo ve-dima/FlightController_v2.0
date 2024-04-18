@@ -43,4 +43,6 @@ namespace Motor
     // int getChannel(unsigned motor);
 
     // int getMotor(unsigned channel);
+
+    void updateOutput(unsigned motor);
 }

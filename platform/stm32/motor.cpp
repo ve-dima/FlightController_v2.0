@@ -1,5 +1,6 @@
 #include "motor/motor.hpp"
 #include "SRT/SRT.hpp"
+#include <algorithm>
 #include <stm32g4xx.h>
 
 namespace Motor
@@ -69,12 +70,19 @@ namespace Motor
         TIM1->CR1 = TIM2->CR1 = TIM16->CR1 = TIM17->CR1 = TIM_CR1_CEN;
 
         for (auto c : assignTable)
-            *c = 1'000;
+            *c = 0;
     }
 
-    void enable()
+    extern float power[maxCount];
+    void updateOutput(unsigned motor)
     {
+        if (power[motor] > 0)
+            *assignTable[motor] = 1'000 + std::clamp<uint32_t>(power[motor] * 1'000, 0, 1'000);
+        else
+            *assignTable[motor] = 900;
     }
+
+    void enable() { stateHandler(); }
 
     void handler()
     {

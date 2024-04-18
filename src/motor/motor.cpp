@@ -23,6 +23,7 @@ namespace Motor
             motorPower = 1;
 
         power[motor] = motorPower;
+        updateOutput(motor);
         return true;
     }
 
