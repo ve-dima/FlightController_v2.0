@@ -9,8 +9,6 @@
 				"FlightController"
 			],
 			"group": "build",
-			"problemMatcher": [],
-			"detail": "CMake template build task",
 		},
 		{
 			"type": "cmake",
@@ -20,8 +18,11 @@
 				"FlightController.elf"
 			],
 			"group": "build",
-			"problemMatcher": [],
-			"detail": "CMake template build task"
+		},
+		{
+			"type": "shell",
+			"label": "start analyzer",
+			"command": "puncover --elf_file ${command:cmake.launchTargetPath} --src_root ${workspaceFolder} --build_dir ${command:cmake.buildDirectory}",
 		}
 	]
 }

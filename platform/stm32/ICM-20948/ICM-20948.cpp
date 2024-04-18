@@ -2,6 +2,8 @@
 #include "Common.hpp"
 #include "InvenSense_ICM20948_registers.hpp"
 #include "SRT/SRT.hpp"
+#include <Eigen/Core>
+#include "mavlink/common/mavlink.h"
 
 using namespace InvenSense_ICM20948;
 
@@ -17,7 +19,7 @@ void SelectRegisterBank(enum REG_BANK_SEL_BIT bank, bool force = false)
         i2cBus.startTx(address, 2);
         i2cBus.write(static_cast<uint8_t>(Register::BANK_0::REG_BANK_SEL));
         i2cBus.write(bank);
-        i2cBus.waitTransferComplete();
+        i2cBus.waitStop();
         i2cBus.end();
 
         lastUsedBank = bank;
@@ -52,10 +54,10 @@ void RegisterWrite(T reg, uint8_t value)
     SelectRegisterBank(reg);
 
     i2cBus.begin();
-    i2cBus.startTx(address, 2, false);
+    i2cBus.startTx(address, 2);
     i2cBus.write(static_cast<uint8_t>(reg));
     i2cBus.write(value);
-    i2cBus.waitTransferComplete();
+    i2cBus.waitStop();
     i2cBus.end();
 }
 
@@ -117,7 +119,7 @@ struct register_bank3_config_t
 
 static constexpr register_bank0_config_t _register_bank0_cfg[] = {
     // Register                             | Set bits, Clear bits
-    {Register::BANK_0::USER_CTRL, USER_CTRL_BIT::I2C_MST_EN | USER_CTRL_BIT::DMP_EN, USER_CTRL_BIT::I2C_IF_DIS},
+    {Register::BANK_0::USER_CTRL, USER_CTRL_BIT::I2C_MST_EN | USER_CTRL_BIT::DMP_EN, 0},
     {Register::BANK_0::PWR_MGMT_1, PWR_MGMT_1_BIT::CLKSEL_0, PWR_MGMT_1_BIT::DEVICE_RESET | PWR_MGMT_1_BIT::SLEEP | PWR_MGMT_1_BIT::TEMP_DIS},
     {Register::BANK_0::INT_PIN_CFG, 0, INT_PIN_CFG_BIT::BYPASS_EN},
 };
@@ -125,6 +127,7 @@ static constexpr register_bank0_config_t _register_bank0_cfg[] = {
 static constexpr register_bank2_config_t _register_bank2_cfg[] = {
     // Register                             | Set bits, Clear bits
     {Register::BANK_2::GYRO_CONFIG_1, GYRO_CONFIG_1_BIT::GYRO_FS_SEL_2000_DPS | GYRO_CONFIG_1_BIT::GYRO_FCHOICE, GYRO_CONFIG_1_BIT::GYRO_DLPFCFG},
+    // {Register::BANK_2::GYRO_CONFIG_2, GYRO_CONFIG_2_BIT::XGYRO_CTEN | GYRO_CONFIG_2_BIT::YGYRO_CTEN | GYRO_CONFIG_2_BIT::ZGYRO_CTEN, 0},
     {Register::BANK_2::ACCEL_CONFIG, ACCEL_CONFIG_BIT::ACCEL_FS_SEL_16G | ACCEL_CONFIG_BIT::ACCEL_FCHOICE, ACCEL_CONFIG_BIT::ACCEL_DLPFCFG},
 };
 
@@ -134,6 +137,15 @@ static constexpr register_bank3_config_t _register_bank3_cfg[] = {
     {Register::BANK_3::I2C_MST_DELAY_CTRL, 0, 0},
     {Register::BANK_3::I2C_SLV4_CTRL, 0, 0},
 };
+
+constexpr float GYROSCOPE_SENSOR_MAX = 2000;                  // dps
+constexpr float GYROSCOPE_SENSOR_MIN = -GYROSCOPE_SENSOR_MAX; // dps
+constexpr float GYROSCOPE_SENSITIVITY = (GYROSCOPE_SENSOR_MAX / (1 << 15)) *
+                                        (M_PI / 180); // rad/LSB
+
+constexpr float ACCELEROMETER_SENSOR_MAX = 16;                                    // G
+constexpr float ACCELEROMETER_SENSOR_MIN = -ACCELEROMETER_SENSOR_MAX;             // G
+constexpr float ACCELEROMETER_SENSITIVITY = ACCELEROMETER_SENSOR_MAX / (1 << 15); // G/LSB
 
 enum class STATE : uint8_t
 {
@@ -151,6 +163,8 @@ void enable()
 {
 }
 
+Eigen::Vector3f gyro, accel;
+
 void handler()
 {
     static uint32_t delayTime = 0, lastTime = 0;
@@ -163,23 +177,24 @@ void handler()
     switch (state)
     {
     case STATE::RESET:
+    {
         // PWR_MGMT_1: Device Reset
+        SelectRegisterBank(REG_BANK_SEL_BIT::USER_BANK_0, true);
         RegisterWrite(Register::BANK_0::PWR_MGMT_1, PWR_MGMT_1_BIT::DEVICE_RESET);
         state = STATE::WAIT_FOR_RESET;
         delayTime = 100;
         break;
-
+    }
     case STATE::WAIT_FOR_RESET:
     {
+        SelectRegisterBank(REG_BANK_SEL_BIT::USER_BANK_0, true);
         uint8_t whoim = RegisterRead(Register::BANK_0::WHO_AM_I);
         // The reset value is 0x00 for all registers other than the registers below
         if ((whoim == WHOAMI) && (RegisterRead(Register::BANK_0::PWR_MGMT_1) == 0x41))
         {
 
             // Wakeup and reset
-            RegisterWrite(Register::BANK_0::PWR_MGMT_1, PWR_MGMT_1_BIT::CLKSEL_0);
-            RegisterWrite(Register::BANK_0::USER_CTRL,
-                          USER_CTRL_BIT::I2C_MST_EN | USER_CTRL_BIT::I2C_IF_DIS | USER_CTRL_BIT::SRAM_RST | USER_CTRL_BIT::I2C_MST_RST);
+            RegisterSetAndClearBits(Register::BANK_0::PWR_MGMT_1, 0, PWR_MGMT_1_BIT::SLEEP);
 
             // if reset succeeded then configure
             state = STATE::CONFIGURE;
@@ -189,9 +204,8 @@ void handler()
         {
             __BKPT(0);
         }
+        break;
     }
-
-    break;
 
     case STATE::CONFIGURE:
     {
@@ -228,10 +242,49 @@ void handler()
             // }
 
             // if configure succeeded then start reading from FIFO
+            SelectRegisterBank(REG_BANK_SEL_BIT::USER_BANK_0, true);
             state = STATE::FIFO_READ;
+            delayTime = 10;
         }
         else
             __BKPT(0);
+        break;
+    }
+    case STATE::FIFO_READ:
+    {
+        DATA_seq data{};
+
+        i2cBus.begin();
+        i2cBus.startTx(address, 1, false);
+        i2cBus.write(static_cast<uint8_t>(Register::BANK_0::ACCEL_XOUT_H));
+        i2cBus.waitTransferComplete();
+        i2cBus.startRx(address, sizeof(data));
+        for (uint8_t &byte : data.u8data)
+            byte = i2cBus.read();
+        i2cBus.stop();
+        i2cBus.end();
+
+        for (uint16_t &half : data.u816data)
+            half = __REVSH(half);
+
+        std::swap(data.vec.accel.x(), data.vec.accel.y());
+        data.vec.accel.x() = (data.vec.accel.x() == INT16_MIN) ? INT16_MAX : -data.vec.accel.x();
+        data.vec.accel.y() = (data.vec.accel.y() == INT16_MIN) ? INT16_MAX : -data.vec.accel.y();
+
+        std::swap(data.vec.gyro.x(), data.vec.gyro.y());
+        data.vec.gyro.z() = (data.vec.gyro.x() == INT16_MIN) ? INT16_MAX : -data.vec.gyro.z();
+
+        gyro = data.vec.gyro.cast<float>() * GYROSCOPE_SENSITIVITY;
+        accel = data.vec.accel.cast<float>() * ACCELEROMETER_SENSITIVITY;
+
+        mavlink_msg_highres_imu_send(MAVLINK_COMM_0, millis(),
+                                     accel.x(), accel.y(), accel.z(),
+                                     gyro.x(), gyro.y(), gyro.z(),
+                                     NAN, NAN, NAN, NAN, NAN, NAN, NAN,
+                                     HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_XACC | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_YACC | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_ZACC |
+                                         HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_XGYRO | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_YGYRO | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_ZGYRO,
+                                     0);
+
         break;
     }
 

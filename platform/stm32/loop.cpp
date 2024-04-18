@@ -1,20 +1,10 @@
 #include "Common.hpp"
 #include "I2C/I2C.hpp"
 #include "SRT/SRT.hpp"
+#include "mavlink/common/mavlink.h"
 
 void loop()
 {
-    // for (uint8_t i = 0; i < 128; i++)
-    // {
-    //     i2c1.begin();
-    //     i2c1.startTx(i, 0);
-    //     // i2c1.waitStop();
-    //     if (i2c1.state != I2C::State::ERROR)
-    //         __BKPT(0);
-    //     // i2c1.stop();
-    //     i2c1.end();
-    //     // delay(5);
-    // }
-    // GPIOA->ODR ^= GPIO_ODR_ODR_15;
-    // delay(1'000);
+    for (static uint32_t hearBeatTimer = 0; millis() - hearBeatTimer > 500; hearBeatTimer = millis())
+        mavlink_msg_heartbeat_send(MAVLINK_COMM_0, MAV_TYPE::MAV_TYPE_IMU, MAV_AUTOPILOT::MAV_AUTOPILOT_INVALID, 0, 0, 0);
 }

@@ -43,7 +43,7 @@
             "showDevDebugOutput": "parsed",
             "interface": "swd",
             "svdFile": "platform/stm32/STM32G431.svd",
-            "preLaunchTask": "Build STM32 version"
+            "preLaunchTask": "Build STM32 version",
         },
     ]
 }

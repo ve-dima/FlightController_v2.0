@@ -24,10 +24,17 @@ set(CXX_CF
         -Werror
 )
 
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
+project (mavlink)
+add_library(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_options(${PROJECT_NAME} INTERFACE -Wno-address-of-packed-member)
+target_compile_definitions(mavlink INTERFACE MAVLINK_NO_SIGN_PACKET MAVLINK_USE_CONVENIENCE_FUNCTIONS)
+
 project(FlightController C CXX ASM)
-
 set(MCU -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard)
-
+set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/platform/stm32/STM32G431CBTx_FLASH.ld)
 file(GLOB_RECURSE SOURCES
         "CMSIS_G4/Source/system_stm32g4xx.c"
         "CMSIS_G4/Source/Templates/gcc/startup_stm32g431xx.s"
@@ -36,10 +43,7 @@ file(GLOB_RECURSE SOURCES
         "platform/stm32/*.cpp"
 )
 
-set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/platform/stm32/STM32G431CBTx_FLASH.ld)
-
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
-
 target_compile_options(${PROJECT_NAME}.elf
         PUBLIC
         --specs=nano.specs
@@ -47,13 +51,11 @@ target_compile_options(${PROJECT_NAME}.elf
         ${MCU}
         ${CXX_CF}
 )
-
 target_include_directories(${PROJECT_NAME}.elf
         PUBLIC
         ${CMAKE_SOURCE_DIR}/CMSIS/CMSIS/Core/Include
         ${CMAKE_SOURCE_DIR}/CMSIS_G4/Include
 )
-
 target_compile_definitions(${PROJECT_NAME}.elf
         PUBLIC
         -DSTM32G431xx
@@ -73,6 +75,10 @@ target_include_directories(${PROJECT_NAME}.elf
                 "src/*"
                 "platform/stm32"
 )
+target_link_libraries (${PROJECT_NAME}.elf Eigen3::Eigen)
+target_link_libraries (${PROJECT_NAME}.elf mavlink)
+target_precompile_headers(mavlink
+        INTERFACE "include/mavlink_bridge_header.hpp")
  
 set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
 set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)
@@ -109,3 +115,4 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
 #                 "platform/pc"
 # )
 # target_link_options(${PROJECT_NAME} PUBLIC -Wl,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map)
+# target_link_libraries (${PROJECT_NAME} Eigen3::Eigen)
