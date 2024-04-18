@@ -41,13 +41,6 @@ namespace Motor
                            GPIO_OSPEEDR_OSPEED12);
         GPIOB->OSPEEDR |= GPIO_OSPEEDR_OSPEED5;
 
-        GPIOA->PUPDR |= (GPIO_PUPDR_PUPD0_1 |
-                         GPIO_PUPDR_PUPD1_1 |
-                         GPIO_PUPDR_PUPD10_1 |
-                         GPIO_PUPDR_PUPD11_1 |
-                         GPIO_PUPDR_PUPD12_1);
-        GPIOB->PUPDR |= GPIO_PUPDR_PUPD5_1;
-
         GPIOA->AFR[0] |= ((1 << GPIO_AFRL_AFSEL0_Pos) |
                           (1 << GPIO_AFRL_AFSEL1_Pos));
         GPIOA->AFR[1] |= ((6 << GPIO_AFRH_AFSEL10_Pos) |
@@ -59,13 +52,18 @@ namespace Motor
         TIM1->PSC = TIM2->PSC = TIM16->PSC = TIM17->PSC = F_CPU / 1'000'000 - 1;
         TIM1->ARR = TIM2->ARR = TIM16->ARR = TIM17->ARR = 1'000'000 / pwmFreq - 1;
         static constexpr uint32_t pwmOutputChannelSettings = (TIM_CCMR1_OC1PE |
-                                                              0b111 << TIM_CCMR1_OC1M_Pos);
+                                                              0b110 << TIM_CCMR1_OC1M_Pos);
         TIM17->CCMR1 |= pwmOutputChannelSettings;
-        TIM2->CCMR2 |= pwmOutputChannelSettings << 8;
+        TIM2->CCMR1 |= pwmOutputChannelSettings << 8;
         TIM2->CCMR1 |= pwmOutputChannelSettings;
         TIM16->CCMR1 |= pwmOutputChannelSettings;
         TIM1->CCMR2 |= pwmOutputChannelSettings;
         TIM1->CCMR2 |= pwmOutputChannelSettings << 8;
+
+        TIM17->CCER |= TIM_CCER_CC1E;
+        TIM2->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E;
+        TIM16->CCER |= TIM_CCER_CC1E;
+        TIM1->CCER |= TIM_CCER_CC3E | TIM_CCER_CC4E;
 
         TIM1->BDTR |= TIM_BDTR_MOE;
         TIM1->CR1 = TIM2->CR1 = TIM16->CR1 = TIM17->CR1 = TIM_CR1_CEN;
