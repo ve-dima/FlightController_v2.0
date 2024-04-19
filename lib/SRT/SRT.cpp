@@ -5,18 +5,18 @@ extern const SRT::Module __stop_modules_list;
 
 void SRT::init()
 {
-    for (const SRT::Module *ptr = &__start_modules_list; ptr < &__stop_modules_list; ++ptr)
+    for (const Module *ptr = &__start_modules_list; ptr != &__stop_modules_list; ++ptr)
         ptr->init();
 }
 
 void SRT::enable()
 {
-    for (const SRT::Module *ptr = &__start_modules_list; ptr < &__stop_modules_list; ++ptr)
+    for (const Module *ptr = &__start_modules_list; ptr != &__stop_modules_list; ++ptr)
         ptr->enable();
 }
 
 void SRT::handler()
 {
-    for (const SRT::Module *ptr = &__start_modules_list; ptr < &__stop_modules_list; ++ptr)
+    for (const Module *ptr = &__start_modules_list; ptr != &__stop_modules_list; ++ptr)
         ptr->handler();
 }

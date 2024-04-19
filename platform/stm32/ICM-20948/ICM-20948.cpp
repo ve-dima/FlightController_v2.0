@@ -3,7 +3,9 @@
 #include "InvenSense_ICM20948_registers.hpp"
 #include "SRT/SRT.hpp"
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 #include "mavlink/common/mavlink.h"
+#include "ahrs/ahrs.hpp"
 
 using namespace InvenSense_ICM20948;
 
@@ -284,7 +286,40 @@ void handler()
                                      HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_XACC | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_YACC | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_ZACC |
                                          HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_XGYRO | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_YGYRO | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_ZGYRO,
                                      0);
+        AHRS::updateByIMU(gyro, accel, 10e-3);
+        Eigen::Quaternionf attitude = AHRS::getAttitude();
+        float roll, pitch, yaw;
+        {
+            float test = attitude.x() * attitude.z() + attitude.y() * attitude.w();
+            if (test > 0.499)
+            { // singularity at north pole
+                yaw = 2 * atan2f(attitude.x(), attitude.w());
+                pitch = M_PI_2;
+                roll = 0;
+            }
+            else if (test < -0.499)
+            { // singularity at south pole
+                yaw = -2 * atan2f(attitude.x(), attitude.w());
+                pitch = -M_PI_2;
+                roll = 0;
+            }
+            else
+            {
+                float sqx = attitude.x() * attitude.x();
+                float sqy = attitude.y() * attitude.y();
+                float sqz = attitude.z() * attitude.z();
+                yaw = atan2f(2 * attitude.z() * attitude.w() - 2 * attitude.x() * attitude.y(), 1 - 2 * sqz - 2 * sqy);
+                pitch = asinf(2 * test);
+                roll = atan2f(2 * attitude.x() * attitude.w() - 2 * attitude.z() * attitude.y(), 1 - 2 * sqx - 2 * sqy);
+            }
+            roll *= (180 / M_PI);
+            pitch *= (180 / M_PI);
+            yaw *= (180 / M_PI);
+        }
 
+        mavlink_msg_attitude_send(MAVLINK_COMM_0, millis(),
+                                  roll, pitch, yaw,
+                                  gyro.x(), gyro.y(), gyro.z());
         break;
     }
 

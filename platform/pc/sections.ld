@@ -86,6 +86,11 @@ SECTIONS
     KEEP(*(SORT(.param*)))
     __param_stop = .;
 
+    . = ALIGN(0x20);
+    __start_modules_list = .;
+    KEEP(*(SORT(modules_list*)))
+    __stop_modules_list = .;
+
     . = ALIGN(8);
     __rt_psrelocs_start = .;
     KEEP(*(.rdata_runtime_pseudo_reloc))
