@@ -176,6 +176,8 @@ namespace InvenSense_ICM20948
 		// 5:3 GYRO_DLPFCFG[2:0]
 		GYRO_DLPFCFG = Bit5 | Bit4 | Bit3, // 7 -
 
+		GYRO_DLPFCFG_120 = 2 << 3,
+
 		// 2:1 GYRO_FS_SEL[1:0]
 		GYRO_FS_SEL_250_DPS = 0,			// 0b00 = ±250 dps
 		GYRO_FS_SEL_500_DPS = Bit1,			// 0b01 = ±500 dps
@@ -198,6 +200,8 @@ namespace InvenSense_ICM20948
 	{
 		// 5:3 ACCEL_DLPFCFG[2:0]
 		ACCEL_DLPFCFG = Bit5 | Bit4 | Bit3, // 7 -
+
+		ACCEL_DLPFCFG_111 = 2 << 3,
 
 		// 2:1 ACCEL_FS_SEL[1:0]
 		ACCEL_FS_SEL_2G = 0,			// 0b00: ±2g

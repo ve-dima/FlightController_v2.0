@@ -84,9 +84,7 @@ namespace Motor
 
     void enable() { stateHandler(); }
 
-    void handler()
-    {
-    }
+    void handler() { stateHandler(); }
 
     REGISTER_SRT_MODULE(pwmDriver, init, enable, handler);
 }

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(CMAKE_SYSTEM_NAME Generic)
-find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
+# find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
@@ -20,7 +20,7 @@ project (mavlink)
 add_library(mavlink INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lib/mavlink)
 target_include_directories(mavlink INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lib/mavlink)
 target_compile_options(mavlink INTERFACE -Wno-address-of-packed-member)
-target_compile_definitions(mavlink INTERFACE MAVLINK_NO_SIGN_PACKET MAVLINK_USE_CONVENIENCE_FUNCTIONS)
+target_compile_definitions(mavlink INTERFACE MAVLINK_NO_SIGN_PACKET MAVLINK_NO_SIGNATURE_CHECK MAVLINK_USE_CONVENIENCE_FUNCTIONS)
 
 project(FlightController C CXX ASM)
 set(MCU -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard)

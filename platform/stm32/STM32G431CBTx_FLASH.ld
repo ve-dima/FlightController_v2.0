@@ -97,7 +97,10 @@ SECTIONS
     . = ALIGN(4);
     *(.rodata)         /* .rodata sections (constants, strings, etc.) */
     *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
-    . = ALIGN(4);
+    . = ALIGN(32);
+    __param_start = .;
+    KEEP(*(SORT(.param*)))
+    __param_stop = .;
   } >FLASH
 
   .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >FLASH
@@ -181,17 +184,3 @@ SECTIONS
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }
-
-/*
-SECTIONS
-{
-.param_s :
-    {
-        . = ALIGN(4);
-        __param_start = .;
-        KEEP(*(.param))
-        KEEP(*(.param.*))
-        __param_stop = .;
-    }  > FLASH
-}
-*/
