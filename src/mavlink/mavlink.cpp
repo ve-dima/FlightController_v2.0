@@ -25,5 +25,5 @@ namespace mavlink
 
         
     }
-    // REGISTER_SRT_MODULE(mavlink, init, enable, handler);
+    REGISTER_SRT_MODULE(mavlink, init, enable, handler);
 }

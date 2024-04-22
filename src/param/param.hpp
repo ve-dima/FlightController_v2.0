@@ -5,9 +5,6 @@ namespace param
 {
     enum type_t : uint8_t
     {
-        UINT8,
-        INT8,
-        UINT32,
         INT32,
         FLOAT,
         _end,

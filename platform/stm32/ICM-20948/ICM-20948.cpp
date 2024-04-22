@@ -1,20 +1,16 @@
-#include "I2C/I2C.hpp"
 #include "Common.hpp"
+#include "Board.hpp"
 #include "InvenSense_ICM20948_registers.hpp"
 #include "SRT/SRT.hpp"
-#include <Eigen/Core>
-#include <Eigen/Geometry>
 #include "mavlink/common/mavlink.h"
 #include "ahrs/ahrs.hpp"
-#include "UART/Uart.hpp"
 
 
 using namespace InvenSense_ICM20948;
 
 namespace ICM20948
 {
-
-    I2C &i2cBus = i2c1;
+    I2C &i2cBus = imuI2C;
     static constexpr uint8_t address = 0x68;
 
     uint8_t lastUsedBank = 0;

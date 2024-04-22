@@ -13,10 +13,10 @@ namespace AHRS
     PARAM_ADD(param::FLOAT, CAL_ACC_YOFF, &accelerometerOffset[1]);
     PARAM_ADD(param::FLOAT, CAL_ACC_ZOFF, &accelerometerOffset[2]);
 
-    float accelerationFilterGain;
+    float accelerationFilterGain = 0.1;
     PARAM_ADD(param::FLOAT, IMU_ACC_GAIN, &accelerationFilterGain);
 
-    float accelerationRejection;
+    float accelerationRejection = 0.5;
     PARAM_ADD(param::FLOAT, IMU_ACC_RJT, &accelerationRejection);
 
     float accelerationRejectionAngle;

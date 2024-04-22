@@ -97,3 +97,6 @@ extern UART uart7;
 #ifdef UART8
 extern UART uart8;
 #endif
+#ifdef LPUART1
+extern UART lpuart1;
+#endif

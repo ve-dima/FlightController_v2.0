@@ -1,5 +1,5 @@
 #include "mavlink/common/mavlink.h"
-#include "UART/Uart.hpp"
+#include "Board.hpp"
 #include "param/param.hpp"
 #include "Common.hpp"
 #include "ahrs/ahrs.hpp"
@@ -18,18 +18,18 @@ void paramToMavParam(param::paramVarId_t &param, mavlink_param_value_t &mP)
 
     switch (param.ptr->type)
     {
-    case param::UINT8:
-        mavParam.value.param_uint8 = *static_cast<const uint8_t *>(param.ptr->address);
-        mavParam.param.param_type = MAV_PARAM_TYPE_UINT8;
-        break;
-    case param::INT8:
-        mavParam.value.param_int8 = *static_cast<const int8_t *>(param.ptr->address);
-        mavParam.param.param_type = MAV_PARAM_TYPE_INT8;
-        break;
-    case param::UINT32:
-        mavParam.value.param_uint32 = *static_cast<const uint32_t *>(param.ptr->address);
-        mavParam.param.param_type = MAV_PARAM_TYPE_UINT32;
-        break;
+    // case param::UINT8:
+    //     mavParam.value.param_uint8 = *static_cast<const uint8_t *>(param.ptr->address);
+    //     mavParam.param.param_type = MAV_PARAM_TYPE_UINT8;
+    //     break;
+    // case param::INT8:
+    //     mavParam.value.param_int8 = *static_cast<const int8_t *>(param.ptr->address);
+    //     mavParam.param.param_type = MAV_PARAM_TYPE_INT8;
+    //     break;
+    // case param::UINT32:
+    //     mavParam.value.param_uint32 = *static_cast<const uint32_t *>(param.ptr->address);
+    //     mavParam.param.param_type = MAV_PARAM_TYPE_UINT32;
+    //     break;
     case param::INT32:
         mavParam.value.param_int32 = *static_cast<const int32_t *>(param.ptr->address);
         mavParam.param.param_type = MAV_PARAM_TYPE_INT32;
@@ -47,11 +47,11 @@ void paramToMavParam(param::paramVarId_t &param, mavlink_param_value_t &mP)
 
 void loop()
 {
-    while (uart3.available())
+    while (mav0Uart.available())
     {
         mavlink_message_t msg;
         mavlink_status_t status = {0};
-        if (mavlink_parse_char(MAVLINK_COMM_0, uart3.read(), &msg, &status) != MAVLINK_FRAMING_OK)
+        if (mavlink_parse_char(MAVLINK_COMM_0, mav0Uart.read(), &msg, &status) != MAVLINK_FRAMING_OK)
             continue;
 
         switch (msg.msgid)
@@ -124,15 +124,15 @@ void loop()
         }
     }
 
-    for (static uint32_t tim = 0; millis() - tim > 25; tim = millis())
-    {
-        uart3.print(AHRS::getAttitude().w(), 4);
-        uart3.print(',');
-        uart3.print(AHRS::getAttitude().x(), 4);
-        uart3.print(',');
-        uart3.print(AHRS::getAttitude().y(), 4);
-        uart3.print(',');
-        uart3.print(AHRS::getAttitude().z(), 4);
-        uart3.println(',');
-    }
+    // for (static uint32_t tim = 0; millis() - tim > 25; tim = millis())
+    // {
+    //     mav0UART.print(AHRS::getAttitude().w(), 4);
+    //     mav0UART.print(',');
+    //     mav0UART.print(AHRS::getAttitude().x(), 4);
+    //     mav0UART.print(',');
+    //     mav0UART.print(AHRS::getAttitude().y(), 4);
+    //     mav0UART.print(',');
+    //     mav0UART.print(AHRS::getAttitude().z(), 4);
+    //     mav0UART.println(',');
+    // }
 }
