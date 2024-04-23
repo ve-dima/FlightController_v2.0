@@ -19,7 +19,7 @@ namespace mavlink
         {
             const auto attitude = AHRS::getAttitude();
             mavlink_msg_attitude_quaternion_send(MAVLINK_COMM_0, millis(),
-                                                 attitude.w(), attitude.x(), attitude.y(), attitude.z(),
+                                                 attitude.w(), attitude.y(), attitude.x(), -attitude.z(),
                                                  NAN, NAN, NAN, nullptr);
         }
 

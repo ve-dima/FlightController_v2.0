@@ -39,40 +39,51 @@ namespace AHRS
         auto current = attitude;
 
         rotate -= Eigen::Vector3f{gyroscopeOffset};
-        rotate.x() = -rotate.x();
-        rotate.y() = -rotate.y();
-
-        current.w() += 0.5f * dT * (-rotate.x() * current.x() - rotate.y() * current.y() - rotate.z() * current.z());
-        current.x() += 0.5f * dT * (rotate.x() * current.w() - rotate.y() * current.z() + rotate.z() * current.y());
-        current.y() += 0.5f * dT * (rotate.x() * current.z() + rotate.y() * current.w() - rotate.z() * current.x());
-        current.z() += 0.5f * dT * (-rotate.x() * current.y() + rotate.y() * current.x() + rotate.z() * current.w());
+#define qw current.w()
+#define qx current.x()
+#define qy current.y()
+#define qz current.z()
+#define wx rotate.x()
+#define wy rotate.y()
+#define wz rotate.z()
+        current.w() += 0.5f * dT * (-qx * wx - qy * wy - qz * wz);
+        current.x() += 0.5f * dT * (qw * wx - qy * wz + qz * wy);
+        current.y() += 0.5f * dT * (qw * wy + qx * wz - qz * wx);
+        current.z() += 0.5f * dT * (qw * wz - qx * wy + qy * wx);
+#undef qw
+#undef qx
+#undef qy
+#undef qz
+#undef wx
+#undef wy
+#undef wz
         current.normalize();
         attitude = current;
 
-        acceleration -= Eigen::Vector3f{accelerometerOffset};
-        
-        G = acceleration.norm();
-        float gain = accelerationFilterGain - std::abs(G - 1) * accelerationRejection;
-        gain = std::clamp(gain, 0.f, 1.f);
+        // acceleration -= Eigen::Vector3f{accelerometerOffset};
 
-        acceleration *= (1.f / G);
-        Eigen::Quaternionf worldFrameAcc = (current.conjugate() *
-                                            Eigen::Quaternionf(0.f, acceleration.x(), acceleration.y(), acceleration.z())) *
-                                           current;
+        // G = acceleration.norm();
+        // float gain = accelerationFilterGain - std::abs(G - 1) * accelerationRejection;
+        // gain = std::clamp(gain, 0.f, 1.f);
 
-        Eigen::Quaternionf accDeltaQ;
-        accDeltaQ.w() = std::sqrt((worldFrameAcc.z() + 1.f) * 0.5f);
-        accDeltaQ.x() = -worldFrameAcc.y() / std::sqrt(2.0 * (worldFrameAcc.z() + 1.0));
-        accDeltaQ.y() = worldFrameAcc.x() / std::sqrt(2.0 * (worldFrameAcc.z() + 1.0));
-        accDeltaQ.z() = 0.f;
+        // acceleration *= (1.f / G);
+        // Eigen::Quaternionf worldFrameAcc = (current.conjugate() *
+        //                                     Eigen::Quaternionf(0.f, acceleration.x(), acceleration.y(), acceleration.z())) *
+        //                                    current;
 
-        accDeltaQ = adaptiveSLERP_I(accDeltaQ, gain);
-        if (accDeltaQ.coeffs().allFinite())
-        {
-            current *= accDeltaQ;
-            current.normalize();
-            attitude = current;
-        }
+        // Eigen::Quaternionf accDeltaQ;
+        // accDeltaQ.w() = std::sqrt((worldFrameAcc.z() + 1.f) * 0.5f);
+        // accDeltaQ.x() = -worldFrameAcc.y() / std::sqrt(2.0 * (worldFrameAcc.z() + 1.0));
+        // accDeltaQ.y() = worldFrameAcc.x() / std::sqrt(2.0 * (worldFrameAcc.z() + 1.0));
+        // accDeltaQ.z() = 0.f;
+
+        // accDeltaQ = adaptiveSLERP_I(accDeltaQ, gain);
+        // if (accDeltaQ.coeffs().allFinite())
+        // {
+        //     current *= accDeltaQ;
+        //     current.normalize();
+        //     attitude = current;
+        // }
     }
 
     void updateByMagnetometer(Eigen::Vector3f field)

@@ -197,11 +197,11 @@ namespace ICM20948
         for (uint16_t &half : data.u816data)
             half = __REVSH(half);
 
-        data.vec.accel.y() = (data.vec.accel.y() == INT16_MIN) ? INT16_MAX : -data.vec.accel.y();
-        std::swap(data.vec.accel.x(), data.vec.accel.y());
+        // data.vec.accel.y() = (data.vec.accel.y() == INT16_MIN) ? INT16_MAX : -data.vec.accel.y();
+        // std::swap(data.vec.accel.x(), data.vec.accel.y());
 
-        data.vec.gyro.y() = (data.vec.gyro.y() == INT16_MIN) ? INT16_MAX : -data.vec.gyro.y();
-        std::swap(data.vec.gyro.x(), data.vec.gyro.y());
+        // data.vec.gyro.y() = (data.vec.gyro.y() == INT16_MIN) ? INT16_MAX : -data.vec.gyro.y();
+        // std::swap(data.vec.gyro.x(), data.vec.gyro.y());
 
         gyro = data.vec.gyro.cast<float>() * GYROSCOPE_SENSITIVITY;
         accel = data.vec.accel.cast<float>() * ACCELEROMETER_SENSITIVITY;
