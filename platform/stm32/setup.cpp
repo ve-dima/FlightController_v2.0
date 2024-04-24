@@ -10,15 +10,6 @@ void setup()
     SysTick_Config(F_CPU / 1'000);
 
     //========================================================================
-    // Led init
-
-    RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
-
-    GPIOA->MODER &= ~(GPIO_MODER_MODE15);
-    GPIOA->MODER |= GPIO_MODER_MODE15_0;
-    GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED15_0;
-
-    //========================================================================
     // I2C1 100kHz
 
     RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN;

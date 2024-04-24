@@ -128,11 +128,11 @@ void loop()
     {
         mav0Uart.print(AHRS::getAttitude().w(), 4);
         mav0Uart.print(',');
-        mav0Uart.print(AHRS::getAttitude().y(), 4);
-        mav0Uart.print(',');
         mav0Uart.print(AHRS::getAttitude().x(), 4);
         mav0Uart.print(',');
-        mav0Uart.print(-AHRS::getAttitude().z(), 4);
+        mav0Uart.print(AHRS::getAttitude().y(), 4);
+        mav0Uart.print(',');
+        mav0Uart.print(AHRS::getAttitude().z(), 4);
         mav0Uart.println(',');
     }
 }
