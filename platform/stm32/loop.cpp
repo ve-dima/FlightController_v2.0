@@ -124,15 +124,15 @@ void loop()
         }
     }
 
-    // for (static uint32_t tim = 0; millis() - tim > 25; tim = millis())
-    // {
-    //     mav0UART.print(AHRS::getAttitude().w(), 4);
-    //     mav0UART.print(',');
-    //     mav0UART.print(AHRS::getAttitude().x(), 4);
-    //     mav0UART.print(',');
-    //     mav0UART.print(AHRS::getAttitude().y(), 4);
-    //     mav0UART.print(',');
-    //     mav0UART.print(AHRS::getAttitude().z(), 4);
-    //     mav0UART.println(',');
-    // }
+    for (static uint32_t tim = 0; millis() - tim > 25; tim = millis())
+    {
+        mav0Uart.print(AHRS::getAttitude().w(), 4);
+        mav0Uart.print(',');
+        mav0Uart.print(AHRS::getAttitude().y(), 4);
+        mav0Uart.print(',');
+        mav0Uart.print(AHRS::getAttitude().x(), 4);
+        mav0Uart.print(',');
+        mav0Uart.print(-AHRS::getAttitude().z(), 4);
+        mav0Uart.println(',');
+    }
 }

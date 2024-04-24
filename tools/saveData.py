@@ -2,7 +2,7 @@ from pymavlink import mavutil
 import signal
 from scipy.spatial.transform import Rotation as R
 
-imuConnection = mavutil.mavlink_connection('COM12', baud=921600)
+imuConnection = mavutil.mavlink_connection('COM12', baud=115200)
 
 def handler(signum, frame):
     imuConnection.close()
@@ -14,4 +14,4 @@ while True:
     if msg is None:
         continue
     att = R.from_quat([msg.q2, msg.q3, msg.q4, msg.q1])
-    print(att.as_euler(seq='zyx', degrees=True))
+    print(att.as_euler(seq='ZYX', degrees=True))

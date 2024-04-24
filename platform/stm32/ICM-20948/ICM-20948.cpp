@@ -197,22 +197,16 @@ namespace ICM20948
         for (uint16_t &half : data.u816data)
             half = __REVSH(half);
 
-        // data.vec.accel.y() = (data.vec.accel.y() == INT16_MIN) ? INT16_MAX : -data.vec.accel.y();
         // std::swap(data.vec.accel.x(), data.vec.accel.y());
+        // data.vec.accel.z() = (data.vec.accel.z() == INT16_MIN) ? INT16_MAX : -data.vec.accel.z();
 
-        // data.vec.gyro.y() = (data.vec.gyro.y() == INT16_MIN) ? INT16_MAX : -data.vec.gyro.y();
         // std::swap(data.vec.gyro.x(), data.vec.gyro.y());
+        // data.vec.gyro.z() = (data.vec.gyro.z() == INT16_MIN) ? INT16_MAX : -data.vec.gyro.z();
 
         gyro = data.vec.gyro.cast<float>() * GYROSCOPE_SENSITIVITY;
         accel = data.vec.accel.cast<float>() * ACCELEROMETER_SENSITIVITY;
 
-        // mavlink_msg_highres_imu_send(MAVLINK_COMM_0, millis(),
-        //                              accel.x(), accel.y(), accel.z(),
-        //                              gyro.x(), gyro.y(), gyro.z(),
-        //                              NAN, NAN, NAN, NAN, NAN, NAN, NAN,
-        //                              HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_XACC | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_YACC | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_ZACC |
-        //                                  HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_XGYRO | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_YGYRO | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_ZGYRO,
-        //                              0);
+
         AHRS::updateByIMU(gyro, accel, 1 / 224.77);
 
 

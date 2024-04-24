@@ -8,6 +8,8 @@ namespace AHRS
     void updateByMagnetometer(Eigen::Vector3f field);
 
     Eigen::Quaternionf getAttitude();
+    Eigen::Vector3f getRawRotate();
+    Eigen::Vector3f getRawAcceleration();
 
     extern float gyroscopeOffset[3];
     extern float gyroscopeRange;
