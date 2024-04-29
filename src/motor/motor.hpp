@@ -3,16 +3,16 @@
 
 namespace Motor
 {
-    static constexpr unsigned maxCount = 6;
+    static constexpr unsigned maxCount = 8;
 
-    static constexpr uint32_t disarmTime = 500;
-    static constexpr uint32_t armTime = 500;
+    static constexpr uint32_t disarmTime = 1'000;
+    static constexpr uint32_t armTime = 1'000;
 
     enum class State
     {
         undefined,
         disarming,
-        disarm,
+        disarmed,
         arming,
         armed,
     };
@@ -33,9 +33,11 @@ namespace Motor
 
     bool setPower(unsigned motor, float power);
     float getPower(unsigned motor);
+    const float *const getPower();
 
     void disarm();
     void arm();
+    State getState();
 
     void stateHandler();
 

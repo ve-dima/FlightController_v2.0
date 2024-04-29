@@ -5,6 +5,11 @@
 
 void setup()
 {
+    // __BKPT(0);
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    DWT->CYCCNT = 0;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+    
     SystemInit();
     SystemCoreClockUpdate();
     SysTick_Config(F_CPU / 1'000);
@@ -39,6 +44,13 @@ void setup()
 
     //========================================================================
 
+    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
+    __DMB();
+    RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
+    __DMB();
+    RCC->AHB1ENR |= RCC_AHB1ENR_DMAMUX1EN;
+    __DMB();
+
     RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN;
     RCC->APB1ENR1 |= RCC_APB1ENR1_USART3EN;
 
@@ -55,8 +67,14 @@ void setup()
     GPIOB->AFR[1] |= ((7 << GPIO_AFRH_AFSEL10_Pos) |
                       (7 << GPIO_AFRH_AFSEL11_Pos));
 
-    NVIC_SetPriority(USART3_IRQn, 0);
+    DMAMUX1_Channel4->CCR = 29 << DMAMUX_CxCR_DMAREQ_ID_Pos;
+    DMAMUX1_Channel5->CCR = 28 << DMAMUX_CxCR_DMAREQ_ID_Pos;
+    NVIC_SetPriority(DMA1_Channel5_IRQn, 1);
+    NVIC_SetPriority(DMA1_Channel6_IRQn, 1);
+    NVIC_SetPriority(USART3_IRQn, 1);
     NVIC_EnableIRQ(USART3_IRQn);
+    NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+    NVIC_EnableIRQ(DMA1_Channel6_IRQn);
 
     //========================================================================
 
@@ -76,8 +94,14 @@ void setup()
     GPIOB->AFR[0] |= ((7 << GPIO_AFRL_AFSEL3_Pos) |
                       (7 << GPIO_AFRL_AFSEL4_Pos));
 
-    NVIC_SetPriority(USART2_IRQn, 0);
+    DMAMUX1_Channel2->CCR = 27 << DMAMUX_CxCR_DMAREQ_ID_Pos;
+    DMAMUX1_Channel3->CCR = 26 << DMAMUX_CxCR_DMAREQ_ID_Pos;
+    NVIC_SetPriority(DMA1_Channel3_IRQn, 1);
+    NVIC_SetPriority(DMA1_Channel4_IRQn, 1);
+    NVIC_SetPriority(USART2_IRQn, 1);
     NVIC_EnableIRQ(USART2_IRQn);
+    NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+    NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 
     //========================================================================
 
@@ -97,8 +121,14 @@ void setup()
     GPIOB->AFR[0] |= ((7 << GPIO_AFRL_AFSEL6_Pos) |
                       (7 << GPIO_AFRL_AFSEL7_Pos));
 
-    NVIC_SetPriority(USART1_IRQn, 0);
+    DMAMUX1_Channel0->CCR = 25 << DMAMUX_CxCR_DMAREQ_ID_Pos;
+    DMAMUX1_Channel1->CCR = 24 << DMAMUX_CxCR_DMAREQ_ID_Pos;
+    NVIC_SetPriority(DMA1_Channel1_IRQn, 1);
+    NVIC_SetPriority(DMA1_Channel2_IRQn, 1);
+    NVIC_SetPriority(USART1_IRQn, 1);
     NVIC_EnableIRQ(USART1_IRQn);
+    NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+    NVIC_EnableIRQ(DMA1_Channel2_IRQn);
 
     //========================================================================
 
@@ -118,13 +148,21 @@ void setup()
     GPIOA->AFR[0] |= ((12 << GPIO_AFRL_AFSEL2_Pos) |
                       (12 << GPIO_AFRL_AFSEL3_Pos));
 
-    NVIC_SetPriority(LPUART1_IRQn, 0);
+    DMAMUX1_Channel6->CCR = 35 << DMAMUX_CxCR_DMAREQ_ID_Pos;
+    DMAMUX1_Channel7->CCR = 34 << DMAMUX_CxCR_DMAREQ_ID_Pos;
+    NVIC_SetPriority(DMA2_Channel1_IRQn, 1);
+    NVIC_SetPriority(DMA2_Channel2_IRQn, 1);
+    NVIC_SetPriority(LPUART1_IRQn, 1);
     NVIC_EnableIRQ(LPUART1_IRQn);
+    NVIC_EnableIRQ(DMA2_Channel1_IRQn);
+    NVIC_EnableIRQ(DMA2_Channel2_IRQn);
 
     __enable_irq();
-
+    mav0Uart.setAutoSend(false);
     mav0Uart.begin(115'200);
+    mav1Uart.setAutoSend(false);
     mav1Uart.begin(115'200);
+    debugUart.begin(115'200);
 }
 
 void mavlink_send_uart_bytes(mavlink_channel_t chan, const uint8_t *ch, uint16_t length)
@@ -133,4 +171,12 @@ void mavlink_send_uart_bytes(mavlink_channel_t chan, const uint8_t *ch, uint16_t
         mav0Uart.write(ch, length);
     if (chan == MAVLINK_COMM_1)
         mav1Uart.write(ch, length);
+}
+
+void mavlink_end_uart_send(mavlink_channel_t chan, int length)
+{
+    if (chan == MAVLINK_COMM_0)
+        mav0Uart.startTX();
+    if (chan == MAVLINK_COMM_1)
+        mav1Uart.startTX();
 }

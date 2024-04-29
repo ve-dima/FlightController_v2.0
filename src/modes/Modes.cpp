@@ -1,10 +1,9 @@
-#include "Common.hpp"
+#include <cstdint>
 #include "Modes.hpp"
-#include "Connection.hpp"
-#include "drivers/onBoardLED/onBoardLED.hpp"
-#include "drivers/PWMOut/PWMOut.hpp"
-#include "drivers/I-Bus/I-Bus.hpp"
-#include "CLI/CLI.hpp"
+#include "Common.hpp"
+#include "ArduinoAPI/Print.h"
+#include "SRT/SRT.hpp"
+#include "Board.hpp"
 
 bool FlightMode::needEnter(const char *&reason)
 {
@@ -40,19 +39,19 @@ void FlightMode::onExit() {}
 
 #include "Disarm.hpp"
 #include "Stabilize.hpp"
-#include "GyroscopeOffsetCalibrate.hpp"
-#include "Direct.hpp"
-#include "Fault.hpp"
+// #include "GyroscopeOffsetCalibrate.hpp"
+// #include "Direct.hpp"
+// #include "Fault.hpp"
 
 namespace FlightModeDispatcher
 {
     static constexpr FlightMode *const modes[] =
         {
             &disarmMode,
-            &faultMode,
+            // &faultMode,
             &stabilizeMode,
-            &gyroscopeOffsetCalibrateMode,
-            &directMode,
+            // &gyroscopeOffsetCalibrateMode,
+            // &directMode,
     };
     static constexpr uint8_t flightModesCount = sizeof(modes) / sizeof(modes[0]);
 
@@ -101,6 +100,7 @@ namespace FlightModeDispatcher
         printer.print(currentFlightMode->name());
         printer.print(" -> ");
         printer.println(fm->name());
+        
         if (enterReason)
             printer.print("Reason: "),
                 printer.println(enterReason);
@@ -120,8 +120,7 @@ namespace FlightModeDispatcher
                 if (not i->needEnter(enterReason))
                     continue;
 
-                printSwitchInfo(bluetooth_uart, i, enterReason);
-                printSwitchInfo(DEBUG_UART, i, enterReason);
+                printSwitchInfo(debugUart, i, enterReason);
 
                 forceChangeMode(i);
                 break;
@@ -157,20 +156,12 @@ namespace FlightModeDispatcher
             currentFlightMode->attitudeTickHandler();
     }
 
-    void changeMode(uint8_t argc, char *argv[])
+    void init(){}
+    void enable(){}
+    void h()
     {
-        if (argc < 2)
-            return;
-
-        for (auto &i : modes)
-            if (strcmp(i->name(), argv[1]) == 0)
-            {
-                forceChangeMode(i);
-                strcpy(argv[0], "OK");
-                return;
-            }
-
-        strcpy(argv[0], "mode not found");
+        switchHandler();
+        handler();
     }
-    REGISTER_COMMAND(mode, changeMode);
+    REGISTER_SRT_MODULE(flightModeDispatcher, init, enable, h);
 }

@@ -22,6 +22,9 @@ target_include_directories(mavlink INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lib/mav
 target_compile_options(mavlink INTERFACE -Wno-address-of-packed-member)
 target_compile_definitions(mavlink INTERFACE MAVLINK_NO_SIGN_PACKET MAVLINK_NO_SIGNATURE_CHECK MAVLINK_USE_CONVENIENCE_FUNCTIONS)
 
+project(lwrb)
+add_subdirectory(lib/lwrb/lwrb)
+
 project(FlightController C CXX ASM)
 set(MCU -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard)
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/platform/stm32/STM32G431CBTx_FLASH.ld)
@@ -29,7 +32,10 @@ file(GLOB_RECURSE SOURCES
         "CMSIS_G4/Source/system_stm32g4xx.c"
         "CMSIS_G4/Source/Templates/gcc/startup_stm32g431xx.s"
         "src/*"
-        "lib/*"
+        "lib/Algo/*"
+        "lib/ArduinoAPI/*"
+        "lib/SRT/*"
+        # "lib/lwrb/lwrb/src/lwrb/*"
         "platform/stm32/*.cpp"
 )
 
@@ -70,12 +76,13 @@ target_link_options(${PROJECT_NAME}.elf PUBLIC -Wl,--gc-sections,--print-memory-
 target_include_directories(${PROJECT_NAME}.elf 
         PUBLIC
                 "include"
+                "src"
                 "lib"
-                "src/*"
                 "platform/stm32"
 )
 target_link_libraries (${PROJECT_NAME}.elf Eigen3::Eigen)
 target_link_libraries (${PROJECT_NAME}.elf mavlink)
+target_link_libraries (${PROJECT_NAME}.elf lwrb)
 target_precompile_headers(mavlink
         INTERFACE "include/mavlink_bridge_header.hpp")
  
@@ -93,7 +100,6 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
 # For pc
 file(GLOB_RECURSE SOURCES
         "src/*"
-        "lib/*"
         "platform/pc/*.cpp"
 )
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/platform/pc/sections.ld)
@@ -108,7 +114,6 @@ target_compile_options(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
         PUBLIC
                 "include"
-                "lib"
                 "src/*"
                 "platform/pc"
 )

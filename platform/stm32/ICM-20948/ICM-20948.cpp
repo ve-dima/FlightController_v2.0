@@ -4,6 +4,7 @@
 #include "SRT/SRT.hpp"
 #include "mavlink/common/mavlink.h"
 #include "ahrs/ahrs.hpp"
+#include "control/Control.hpp"
 
 
 using namespace InvenSense_ICM20948;
@@ -171,7 +172,7 @@ namespace ICM20948
         TIM6->CR1 |= TIM_CR1_CEN;
 
         NVIC_DisableIRQ(TIM6_DAC_IRQn);
-        NVIC_SetPriority(TIM6_DAC_IRQn, 1);
+        NVIC_SetPriority(TIM6_DAC_IRQn, 2);
     }
 
     void enable()
@@ -197,19 +198,17 @@ namespace ICM20948
         for (uint16_t &half : data.u816data)
             half = __REVSH(half);
 
-        // std::swap(data.vec.accel.x(), data.vec.accel.y());
-        // data.vec.accel.z() = (data.vec.accel.z() == INT16_MIN) ? INT16_MAX : -data.vec.accel.z();
-
-        // std::swap(data.vec.gyro.x(), data.vec.gyro.y());
-        // data.vec.gyro.z() = (data.vec.gyro.z() == INT16_MIN) ? INT16_MAX : -data.vec.gyro.z();
+        std::swap(data.vec.accel.x(), data.vec.accel.y());
+        std::swap(data.vec.gyro.x(), data.vec.gyro.y());
 
         gyro = data.vec.gyro.cast<float>() * GYROSCOPE_SENSITIVITY;
         accel = data.vec.accel.cast<float>() * ACCELEROMETER_SENSITIVITY;
 
 
         AHRS::updateByIMU(gyro, accel, 1 / 224.77);
-
-
+        Control::velocityHandler();
+        Control::rateHandler();
+        Control::updateMotorPower();
     }
 
     extern "C" void TIM6_DAC_IRQHandler(void)

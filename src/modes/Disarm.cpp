@@ -1,34 +1,46 @@
 #include "Disarm.hpp"
-#include "Common.hpp"
-#include "drivers/PWMOut/PWMOut.hpp"
-#include "drivers/I-Bus/I-Bus.hpp"
-#include "drivers/PWMOut/PWMOut.hpp"
-#include "drivers/onBoardLED/onBoardLED.hpp"
-#include "PID/pidRegulator.hpp"
-#include "Connection.hpp"
+#include "motor/motor.hpp"
+#include "control/Control.hpp"
+#include "indicators/LED.hpp"
+#include "rc/RC.hpp"
 
 Disarm disarmMode;
 
 void Disarm::onEnter()
 {
-    PID_RegulatorReset();
-    throttle = 0.0f;
-    altitudeMode = AltitudeMode::none;
-
-    for (unsigned i = 0; i < PWMOut::channelCount; ++i)
-        PWMOut::setPower(i, 0.0f);
-    PWMOut::pwmDisable();
-
-    onBoardLED::set(onBoardLED::RED, onBoardLED::OFF);
-    onBoardLED::set(onBoardLED::BLUE, onBoardLED::OFF);
+    LED::setLED(LED::Color::red, LED::Action::blink);
+    Motor::disarm();
 }
 
 bool Disarm::needEnter(const char *&reason)
 {
-    if (safeSwitchChannel <= 1200)
+    if (RC::channel(RC::ChannelFunction::ARMSWITCH) < 0.2 or
+        RC::channel(RC::ChannelFunction::ARMSWITCH) == NAN)
     {
         reason = "manual switch";
         return true;
     }
+    else if (RC::state() != RC::State::ok)
+    {
+        reason = "manual control loss";
+        return true;
+    }
     return false;
+}
+
+bool Disarm::canExit(const char *&err)
+{
+    if (RC::channel(RC::ChannelFunction::ARMSWITCH) < 0.2 or
+        RC::channel(RC::ChannelFunction::ARMSWITCH) == NAN)
+    {
+        err = "Not armed";
+        return false;
+    }
+    else if (RC::state() != RC::State::ok)
+    {
+        err = "no manual control";
+        return false;
+    }
+
+    return true;
 }

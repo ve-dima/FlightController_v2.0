@@ -13,6 +13,7 @@ public:
 
     bool needEnter(const char *&reason) override final;
     void onEnter() override final;
+    bool canExit(const char *&err) override final;
 };
 
 extern Disarm disarmMode;

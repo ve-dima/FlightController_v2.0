@@ -59,6 +59,7 @@ namespace LED
         actionTickCounter = 0;
         color = c;
         action = a;
+        tickTimer = millis();
 
         handler();
     }

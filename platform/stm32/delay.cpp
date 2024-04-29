@@ -9,7 +9,7 @@ extern "C" void SysTick_Handler()
 
 uint32_t millis() { return millisCounter; }
 
-uint32_t tick() { return SysTick->VAL; }
+uint32_t tick() { return DWT->CYCCNT; }
 
 void delay(uint32_t ms)
 {

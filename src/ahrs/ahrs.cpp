@@ -29,49 +29,49 @@ Eigen::Quaternionf adaptiveSLERP_I(Eigen::Quaternionf q, float gain, const float
 
 namespace AHRS
 {
-    Eigen::Vector3f rawRotate;
-    Eigen::Vector3f rawAcceleration;
+    extern float gyroscopeOffset[3];
+    extern float gyroscopeRange;
 
+    extern float accelerometerOffset[3];
+    extern float accelerometerRange;
+
+    extern float accelerationFilterGain;
+    extern float accelerationRejection;
+    extern float accelerationRejectionAngle;
+
+    Eigen::Vector3f rawRSpeed, rotateSpeed;
+    Eigen::Vector3f rawAcceleration, acceleration;
     Eigen::Quaternionf attitude = Eigen::Quaternionf(1, 0, 0, 0);
-    Eigen::Quaternionf getAttitude() { return attitude; }
-
-    Eigen::Vector3f getRawRotate() { return rawRotate; }
-    Eigen::Vector3f getRawAcceleration() { return rawAcceleration; }
-
     float G = 1;
 
-    void updateByIMU(Eigen::Vector3f rotate, Eigen::Vector3f acceleration, float dT)
+    Eigen::Vector3f getRawRSpeed() { return rawRSpeed; }
+    Eigen::Vector3f getRAcceleration() { return Eigen::Vector3f(0, 0, 0); }
+
+    Eigen::Vector3f getRawAcceleration() { return rawAcceleration; }
+
+    Eigen::Vector3f getRSpeed() { return rotateSpeed; }
+    Eigen::Vector3f getAcceleration() { return acceleration; }
+    float getG() { return G; }
+
+    Eigen::Quaternionf getFRU_Attitude() { return attitude; }
+    Eigen::Quaternionf getFRD_Attitude() { return Eigen::Quaternionf(attitude.w(), attitude.x(), attitude.y(), -attitude.z()); }
+
+    void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f acceleration, float dT)
     {
-        rawRotate = rotate;
+        rawRSpeed = rSpeed;
         rawAcceleration = acceleration;
+        rotateSpeed = rSpeed - Eigen::Vector3f{gyroscopeOffset};
+        acceleration -= Eigen::Vector3f{accelerometerOffset};
 
-        auto current = attitude;
+        Eigen::Quaternionf current = attitude;
 
-        rotate -= Eigen::Vector3f{gyroscopeOffset};
-#define qw current.w()
-#define qx current.x()
-#define qy current.y()
-#define qz current.z()
-#define wx rotate.x()
-#define wy rotate.y()
-#define wz rotate.z()
         Eigen::Quaternionf qDot = Eigen::Quaternionf(
-            0.5 * dT * (wx * qx + wy * qy + wz * qz),
-            0.5 * dT * (-wx * qw - wy * qz + wz * qy),
-            0.5 * dT * (wx * qz - wy * qw - wz * qx),
-            0.5 * dT * (-wx * qy + wy * qx - wz * qw));
-#undef qw
-#undef qx
-#undef qy
-#undef qz
-#undef wx
-#undef wy
-#undef wz
+            0.5 * dT * (rotateSpeed.x() * current.x() + rotateSpeed.y() * current.y() + rotateSpeed.z() * current.z()),
+            0.5 * dT * (-rotateSpeed.x() * current.w() - rotateSpeed.y() * current.z() + rotateSpeed.z() * current.y()),
+            0.5 * dT * (rotateSpeed.x() * current.z() - rotateSpeed.y() * current.w() - rotateSpeed.z() * current.x()),
+            0.5 * dT * (-rotateSpeed.x() * current.y() + rotateSpeed.y() * current.x() - rotateSpeed.z() * current.w()));
         current = current.coeffs() + qDot.coeffs();
         current.normalize();
-        attitude = current;
-
-        acceleration -= Eigen::Vector3f{accelerometerOffset};
 
         G = acceleration.norm();
         float gain = accelerationFilterGain - std::abs(G - 1) * accelerationRejection;
@@ -82,9 +82,9 @@ namespace AHRS
                                             Eigen::Quaternionf(0.f, acceleration.x(), acceleration.y(), acceleration.z())) *
                                            current;
         Eigen::Quaternionf accDeltaQ;
-        accDeltaQ.w() = std::sqrt((worldFrameAcc.z() + 1.0) / 2.0);
-        accDeltaQ.x() = -worldFrameAcc.y() / std::sqrt(2.0 * (worldFrameAcc.z() + 1));
-        accDeltaQ.y() = worldFrameAcc.x() / std::sqrt(2.0 * (worldFrameAcc.z() + 1));
+        accDeltaQ.w() = std::sqrt((worldFrameAcc.z() + 1) / 2);
+        accDeltaQ.x() = -worldFrameAcc.y() / (2 * accDeltaQ.w());
+        accDeltaQ.y() = worldFrameAcc.x() / (2 * accDeltaQ.w());
         accDeltaQ.z() = 0.0;
         accDeltaQ = adaptiveSLERP_I(accDeltaQ, gain);
 

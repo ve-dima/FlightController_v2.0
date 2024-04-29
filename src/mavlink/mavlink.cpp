@@ -3,6 +3,9 @@
 #include "Common.hpp"
 #include "SRT/SRT.hpp"
 #include "ahrs/ahrs.hpp"
+#include "control/Control.hpp"
+#include "motor/motor.hpp"
+#include "rc/RC.hpp"
 
 namespace mavlink
 {
@@ -12,39 +15,73 @@ namespace mavlink
 
     void handler()
     {
-        for (static uint32_t hearBeatTimer = 0; millis() - hearBeatTimer > 500; hearBeatTimer = millis())
-            mavlink_msg_heartbeat_send(MAVLINK_COMM_0, MAV_TYPE::MAV_TYPE_IMU, MAV_AUTOPILOT::MAV_AUTOPILOT_INVALID, 0, 0, 0);
+        // for (static uint32_t hearBeatTimer = 0; millis() - hearBeatTimer > 500; hearBeatTimer = millis())
+        //     mavlink_msg_heartbeat_send(MAVLINK_COMM_0, MAV_TYPE::MAV_TYPE_IMU, MAV_AUTOPILOT::MAV_AUTOPILOT_INVALID, 0, 0, 0);
 
-        for (static uint32_t attTimer = 0; millis() - attTimer > 50; attTimer = millis())
-        {
-            const auto attitude = AHRS::getAttitude();
-            const auto accel = AHRS::getRawAcceleration();
-            const auto gyro = AHRS::getRawRotate();
+        // for (static uint32_t attTimer = 0; millis() - attTimer > 50; attTimer = millis())
+        // {
+        //     const auto attitude = AHRS::getFRD_Attitude();
+        //     const auto targetRate = Control::getTargetRate();
+        //     const auto targetAttitude = Control::getTargetAttitude();
+        //     const auto targetThrust = Control::getTargetThrust();
+        //     const float mavTAtt[4] = {targetAttitude.w(), targetAttitude.x(), targetAttitude.y(), targetAttitude.z()};
 
-            mavlink_msg_attitude_quaternion_send(MAVLINK_COMM_0, millis(),
-                                                 attitude.w(), attitude.y(), attitude.x(), -attitude.z(),
-                                                 NAN, NAN, NAN, nullptr);
-#define qw attitude.w()
-#define qx attitude.x()
-#define qy attitude.y()
-#define qz attitude.z()
-            // mavlink_msg_attitude_send(MAVLINK_COMM_0, millis(),
-            //                           std::atan2(2 * qw * qx + 2 * qy * qz, -2 * qx * qx - 2 * qy * qy + 1),
-            //                           std::asin(2 * qw * qy - 2 * qx * qz),
-            //                           std::atan2(2 * qw * qz + 2 * qx * qy, -2 * qy * qy - 2 * qz * qz + 1),
-            //                           NAN, NAN, NAN);
-#undef qw
-#undef qx
-#undef qy
-#undef qz
-            mavlink_msg_highres_imu_send(MAVLINK_COMM_0, millis(),
-                                         accel.x(), accel.y(), accel.z(),
-                                         gyro.x(), gyro.y(), gyro.z(),
-                                         NAN, NAN, NAN, NAN, NAN, NAN, NAN,
-                                         HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_XACC | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_YACC | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_ZACC |
-                                             HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_XGYRO | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_YGYRO | HIGHRES_IMU_UPDATED_FLAGS::HIGHRES_IMU_UPDATED_ZGYRO,
-                                         0);
-        }
+        //     mavlink_msg_attitude_quaternion_send(MAVLINK_COMM_0, millis(),
+        //                                          attitude.w(), attitude.x(), attitude.y(), attitude.z(),
+        //                                          NAN, NAN, NAN, nullptr);
+
+        //     mavlink_msg_attitude_target_send(MAVLINK_COMM_0, millis(),
+        //                                      0, mavTAtt,
+        //                                      targetRate.x(), targetRate.y(), -targetRate.z(),
+        //                                      targetThrust);
+
+        //     mavlink_msg_actuator_control_target_send(MAVLINK_COMM_0, millis(),
+        //                                              0, Motor::getPower());
+        // }
+
+        // for (static uint32_t rcTimer = 0; millis() - rcTimer > (1000 / 50); rcTimer = millis())
+        //     mavlink_msg_rc_channels_send(MAVLINK_COMM_0, millis(), RC::channelCount(),
+        //                                  RC::rawChannel(0),
+        //                                  RC::rawChannel(1),
+        //                                  RC::rawChannel(2),
+        //                                  RC::rawChannel(3),
+        //                                  RC::rawChannel(4),
+        //                                  RC::rawChannel(5),
+        //                                  RC::rawChannel(6),
+        //                                  RC::rawChannel(7),
+        //                                  RC::rawChannel(8),
+        //                                  RC::rawChannel(9),
+        //                                  RC::rawChannel(10),
+        //                                  RC::rawChannel(11),
+        //                                  RC::rawChannel(12),
+        //                                  RC::rawChannel(13),
+        //                                  RC::rawChannel(14),
+        //                                  RC::rawChannel(15),
+        //                                  RC::rawChannel(16),
+        //                                  RC::rawChannel(17),
+        //                                  RC::rssi());
+
+        for (static uint32_t rcTimer = 0; millis() - rcTimer > (1000 / 50); rcTimer = millis())
+            mavlink_msg_rc_channels_send(MAVLINK_COMM_0, millis(), RC::channelCount(),
+                                         RC::channel(1) * 1000 + 1000,
+                                         RC::channel(2) * 1000 + 1000,
+                                         RC::channel(3) * 1000 + 1000,
+                                         RC::channel(4) * 1000 + 1000,
+                                         RC::channel(5) * 1000 + 1000,
+                                         RC::channel(6) * 1000 + 1000,
+                                         RC::channel(7) * 1000 + 1000,
+                                         RC::channel(8) * 1000 + 1000,
+                                         RC::channel(9) * 1000 + 1000,
+                                         RC::channel(10) * 1000 + 1000,
+                                         RC::channel(11) * 1000 + 1000,
+                                         RC::channel(12) * 1000 + 1000,
+                                         RC::channel(13) * 1000 + 1000,
+                                         RC::channel(14) * 1000 + 1000,
+                                         RC::channel(15) * 1000 + 1000,
+                                         RC::channel(16) * 1000 + 1000,
+                                         RC::channel(17) * 1000 + 1000,
+                                         0,
+                                         RC::rssi());
     }
-    // REGISTER_SRT_MODULE(mavlink, init, enable, handler);
+    REGISTER_SRT_MODULE(mavlink, init, enable, handler);
 }

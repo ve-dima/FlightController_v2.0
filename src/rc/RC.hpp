@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <cstddef>
 
 namespace RC
 {
@@ -8,9 +9,9 @@ namespace RC
     enum class ProtocolDetector : int32_t
     {
         not_connected = 0,
+        CRSF,
         IBUS,
         SBUS,
-        CRSF,
         __end,
     };
 
@@ -57,6 +58,7 @@ namespace RC
     uint8_t rssi();
     uint8_t channelCount();
 
+    int16_t rawChannel(unsigned channel);
     float channel(unsigned channel);
     float channel(ChannelFunction channel);
     bool inDZ(unsigned channel);
@@ -64,18 +66,11 @@ namespace RC
 
     void update(int16_t channels[], unsigned channelCount, uint8_t rssi, bool signalAvailable);
     void checkValues();
-
-    extern int32_t _channelsAssign[static_cast<int>(ChannelFunction::__end)];
-    extern float _minChannelValue[maxChannelCount],
-        _maxChannelValue[maxChannelCount],
-        _channelDeadZone[maxChannelCount],
-        _channelIsReverse[maxChannelCount];
-    extern ProtocolDetector _selectedProtocol;
-    static_assert(sizeof(int32_t) == sizeof(_selectedProtocol), "ban");
 };
 
 class RC_parser
 {
 public:
-    virtual bool parseData(uint8_t data, bool parityError, int16_t channels[], unsigned &channelCount, uint8_t &rssi, bool &signalAvailable) = 0;
+    virtual bool parseData(uint8_t data[], size_t len, bool parityError, int16_t channels[], unsigned &channelCount, uint8_t &rssi, bool &signalAvailable) = 0;
+    virtual void sendTelemetry(uint8_t data[], uint8_t &count) {}
 };

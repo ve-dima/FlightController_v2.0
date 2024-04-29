@@ -4,21 +4,18 @@
 
 namespace AHRS
 {
-    void updateByIMU(Eigen::Vector3f rotate, Eigen::Vector3f acceleration, float dT);
+    void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f acceleration, float dT);
     void updateByMagnetometer(Eigen::Vector3f field);
 
-    Eigen::Quaternionf getAttitude();
-    Eigen::Vector3f getRawRotate();
+    Eigen::Vector3f getRawRSpeed();
+    Eigen::Vector3f getRAcceleration();
+
     Eigen::Vector3f getRawAcceleration();
+    float getG();
 
-    extern float gyroscopeOffset[3];
-    extern float gyroscopeRange;
+    Eigen::Vector3f getRSpeed();
+    Eigen::Vector3f getAcceleration();
 
-    extern float accelerometerOffset[3];
-    extern float accelerometerRange;
-
-    extern float accelerationFilterGain;
-    extern float accelerationRejection;
-    extern float accelerationRejectionAngle;
-
+    Eigen::Quaternionf getFRU_Attitude();
+    Eigen::Quaternionf getFRD_Attitude();
 }

@@ -8,3 +8,7 @@
 [submodule "lib/mavlink"]
 	path = lib/mavlink
 	url = https://github.com/mavlink/c_library_v2
+[submodule "lib/lwrb"]
+	path = lib/lwrb
+	url = https://github.com/MaJerle/lwrb
+	branch = main

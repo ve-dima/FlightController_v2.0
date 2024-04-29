@@ -76,7 +76,7 @@ namespace Motor
     extern float power[maxCount];
     void updateOutput(unsigned motor)
     {
-        if (power[motor] > 0)
+        if (power[motor] > 0 and motor < (sizeof(assignTable) / sizeof(assignTable[0])))
             *assignTable[motor] = 1'000 + std::clamp<uint32_t>(power[motor] * 1'000, 0, 1'000);
         else
             *assignTable[motor] = 900;
