@@ -50,7 +50,7 @@ namespace Control
                 .max = 1,
             }}};
 
-    float minimalTrust;
+    float minimalTrust = 0.1;
 
     void parameterUpdate()
     {

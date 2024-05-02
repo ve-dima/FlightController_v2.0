@@ -5,7 +5,7 @@
 
 namespace Motor
 {
-    State state = State::undefined;
+    State state = State::armed;
     // Protocol protocol = Protocol::pwm50;
 
     State getState() { return state; }

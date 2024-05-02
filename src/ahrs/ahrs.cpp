@@ -56,22 +56,24 @@ namespace AHRS
     Eigen::Quaternionf getFRU_Attitude() { return attitude; }
     Eigen::Quaternionf getFRD_Attitude() { return Eigen::Quaternionf(attitude.w(), attitude.x(), attitude.y(), -attitude.z()); }
 
-    void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f acceleration, float dT)
+    void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f acc, float dT)
     {
         rawRSpeed = rSpeed;
-        rawAcceleration = acceleration;
+        rawAcceleration = acc;
+
         rotateSpeed = rSpeed - Eigen::Vector3f{gyroscopeOffset};
-        acceleration -= Eigen::Vector3f{accelerometerOffset};
+        acceleration = acc - Eigen::Vector3f{accelerometerOffset};
 
         Eigen::Quaternionf current = attitude;
 
         Eigen::Quaternionf qDot = Eigen::Quaternionf(
-            0.5 * dT * (rotateSpeed.x() * current.x() + rotateSpeed.y() * current.y() + rotateSpeed.z() * current.z()),
-            0.5 * dT * (-rotateSpeed.x() * current.w() - rotateSpeed.y() * current.z() + rotateSpeed.z() * current.y()),
-            0.5 * dT * (rotateSpeed.x() * current.z() - rotateSpeed.y() * current.w() - rotateSpeed.z() * current.x()),
-            0.5 * dT * (-rotateSpeed.x() * current.y() + rotateSpeed.y() * current.x() - rotateSpeed.z() * current.w()));
-        current = current.coeffs() + qDot.coeffs();
+            0.5 * dT * (-rotateSpeed.x() * current.x() - rotateSpeed.y() * current.y() - rotateSpeed.z() * current.z()),
+            0.5 * dT * (rotateSpeed.x() * current.w() + rotateSpeed.y() * current.z() - rotateSpeed.z() * current.y()),
+            0.5 * dT * (-rotateSpeed.x() * current.z() + rotateSpeed.y() * current.w() + rotateSpeed.z() * current.x()),
+            0.5 * dT * (rotateSpeed.x() * current.y() - rotateSpeed.y() * current.x() + rotateSpeed.z() * current.w()));
+        current.coeffs() += qDot.coeffs();
         current.normalize();
+        attitude = current;
 
         G = acceleration.norm();
         float gain = accelerationFilterGain - std::abs(G - 1) * accelerationRejection;

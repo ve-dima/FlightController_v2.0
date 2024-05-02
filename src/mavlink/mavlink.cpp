@@ -15,34 +15,36 @@ namespace mavlink
 
     void handler()
     {
-        // for (static uint32_t hearBeatTimer = 0; millis() - hearBeatTimer > 500; hearBeatTimer = millis())
-        //     mavlink_msg_heartbeat_send(MAVLINK_COMM_0, MAV_TYPE::MAV_TYPE_IMU, MAV_AUTOPILOT::MAV_AUTOPILOT_INVALID, 0, 0, 0);
+        for (static uint32_t hearBeatTimer = 0; millis() - hearBeatTimer > 500; hearBeatTimer = millis())
+            mavlink_msg_heartbeat_send(MAVLINK_COMM_0, MAV_TYPE::MAV_TYPE_IMU, MAV_AUTOPILOT::MAV_AUTOPILOT_INVALID, 0, 0, 0);
 
-        // for (static uint32_t attTimer = 0; millis() - attTimer > 50; attTimer = millis())
-        // {
-        //     const auto attitude = AHRS::getFRD_Attitude();
-        //     const auto targetRate = Control::getTargetRate();
-        //     const auto targetAttitude = Control::getTargetAttitude();
-        //     const auto targetThrust = Control::getTargetThrust();
-        //     const float mavTAtt[4] = {targetAttitude.w(), targetAttitude.x(), targetAttitude.y(), targetAttitude.z()};
+        for (static uint32_t attTimer = 0; millis() - attTimer > 50; attTimer = millis())
+        {
+            const auto attitude = AHRS::getFRD_Attitude();
+            const auto targetRate = Control::getTargetRate();
+            const auto targetAttitude = Control::getTargetAttitude();
+            const auto targetThrust = Control::getTargetThrust();
+            const float mavTAtt[4] = {targetAttitude.w(), targetAttitude.x(), targetAttitude.y(), targetAttitude.z()};
 
-        //     mavlink_msg_attitude_quaternion_send(MAVLINK_COMM_0, millis(),
-        //                                          attitude.w(), attitude.x(), attitude.y(), attitude.z(),
-        //                                          NAN, NAN, NAN, nullptr);
+            mavlink_msg_attitude_quaternion_send(MAVLINK_COMM_0, millis(),
+                                                 attitude.w(), attitude.x(), attitude.y(), attitude.z(),
+                                                 NAN, NAN, NAN, nullptr);
 
-        // mavlink_msg_attitude_target_send(MAVLINK_COMM_0, millis(),
-        //                                  0, mavTAtt,
-        //                                  targetRate.x(), targetRate.y(), -targetRate.z(),
-        //                                  targetThrust);
-        const Eigen::Vector3f t = Control::getTargetThrustVector();
-        float powers[8];
-        std::copy(Motor::getPower(), Motor::getPower() + 4, powers);
-        powers[4] = t.x();
-        powers[5] = t.y();
-        powers[6] = t.z();
+            mavlink_msg_attitude_target_send(MAVLINK_COMM_0, millis(),
+                                             0, mavTAtt,
+                                             targetRate.x(), targetRate.y(), -targetRate.z(),
+                                             targetThrust);
 
-        mavlink_msg_actuator_control_target_send(MAVLINK_COMM_0, millis(),
-                                                 0, powers);
+            const Eigen::Vector3f t = Control::getTargetThrustVector();
+            float powers[8];
+            std::copy(Motor::getPower(), Motor::getPower() + 4, powers);
+            powers[4] = t.x();
+            powers[5] = t.y();
+            powers[6] = t.z();
+
+            mavlink_msg_actuator_control_target_send(MAVLINK_COMM_0, millis(),
+                                                     0, powers);
+        }
 
         // for (static uint32_t rcTimer = 0; millis() - rcTimer > (1000 / 50); rcTimer = millis())
         //     mavlink_msg_rc_channels_send(MAVLINK_COMM_0, millis(), RC::channelCount(),
@@ -66,7 +68,7 @@ namespace mavlink
         //                                  RC::rawChannel(17),
         //                                  RC::rssi());
 
-        for (static uint32_t rcTimer = 0; millis() - rcTimer > (1000 / 50); rcTimer = millis())
+        for (static uint32_t rcTimer = 0; millis() - rcTimer > (1000 / 5); rcTimer = millis())
             mavlink_msg_rc_channels_send(MAVLINK_COMM_0, millis(), RC::channelCount(),
                                          RC::channel(1) * 1000 + 1000,
                                          RC::channel(2) * 1000 + 1000,

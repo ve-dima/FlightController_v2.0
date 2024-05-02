@@ -124,17 +124,17 @@ void loop()
         }
     }
 
-    // for (static uint32_t tim = 0; millis() - tim > 1'000; tim = millis())
-    // {
-    //     const auto attitude = AHRS::getFRD_Attitude();
-    //     mav0Uart.print(attitude.w(), 4);
-    //     mav0Uart.print(',');
-    //     mav0Uart.print(attitude.x(), 4);
-    //     mav0Uart.print(',');
-    //     mav0Uart.print(attitude.y(), 4);
-    //     mav0Uart.print(',');
-    //     mav0Uart.print(attitude.z(), 4);
-    //     mav0Uart.println(',');
-    //     mav0Uart.println(millis());
-    // }
+    for (static uint32_t tim = 0; millis() - tim > 50; tim = millis())
+    {
+        const auto attitude = AHRS::getFRD_Attitude();
+        debugUart.print(attitude.w(), 4);
+        debugUart.print(',');
+        debugUart.print(attitude.x(), 4);
+        debugUart.print(',');
+        debugUart.print(attitude.y(), 4);
+        debugUart.print(',');
+        debugUart.print(attitude.z(), 4);
+        debugUart.println();
+        // debugUart.println(millis());
+    }
 }

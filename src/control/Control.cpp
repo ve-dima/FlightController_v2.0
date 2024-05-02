@@ -11,7 +11,7 @@ namespace Control
         .axis = {
             .roll = AngleControlMode::angle,
             .pitch = AngleControlMode::angle,
-            .yaw = AngleControlMode::velocity,
+            .yaw = AngleControlMode::angle,
         }};
 
     union
@@ -34,7 +34,7 @@ namespace Control
                       .yaw = PIDf(angleSettings.axis.yaw),
                   }};
 
-    float targetThrust = 0;
+    float targetThrust = 0.5;
     Eigen::Vector3f targetTrustVector = Eigen::Vector3f(0, 0, 0);
     Eigen::Vector3f targetRate = Eigen::Vector3f(0, 0, 0);
     Eigen::Quaternionf targetAttitude = Eigen::Quaternionf(1, 0, 0, 0);
@@ -81,7 +81,7 @@ namespace Control
 
         float minThrust = INFINITY, maxTrust = -INFINITY;
         for (float &p : outPower.array)
-            minThrust = std::min(minimalTrust, p),
+            minThrust = std::min(minThrust, p),
             maxTrust = std::max(maxTrust, p);
 
         const float len = maxTrust - minThrust,
