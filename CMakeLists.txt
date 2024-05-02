@@ -24,6 +24,7 @@ target_compile_definitions(mavlink INTERFACE MAVLINK_NO_SIGN_PACKET MAVLINK_NO_S
 
 project(lwrb)
 add_subdirectory(lib/lwrb/lwrb)
+target_compile_definitions(lwrb PUBLIC LWRB_DISABLE_ATOMIC)
 
 project(FlightController C CXX ASM)
 set(MCU -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard)
@@ -34,8 +35,7 @@ file(GLOB_RECURSE SOURCES
         "src/*"
         "lib/Algo/*"
         "lib/ArduinoAPI/*"
-        "lib/SRT/*"
-        # "lib/lwrb/lwrb/src/lwrb/*"
+        "lib/SRT/*.cpp"
         "platform/stm32/*.cpp"
 )
 

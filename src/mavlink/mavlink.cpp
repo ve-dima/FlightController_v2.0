@@ -30,14 +30,19 @@ namespace mavlink
         //                                          attitude.w(), attitude.x(), attitude.y(), attitude.z(),
         //                                          NAN, NAN, NAN, nullptr);
 
-        //     mavlink_msg_attitude_target_send(MAVLINK_COMM_0, millis(),
-        //                                      0, mavTAtt,
-        //                                      targetRate.x(), targetRate.y(), -targetRate.z(),
-        //                                      targetThrust);
+        // mavlink_msg_attitude_target_send(MAVLINK_COMM_0, millis(),
+        //                                  0, mavTAtt,
+        //                                  targetRate.x(), targetRate.y(), -targetRate.z(),
+        //                                  targetThrust);
+        const Eigen::Vector3f t = Control::getTargetThrustVector();
+        float powers[8];
+        std::copy(Motor::getPower(), Motor::getPower() + 4, powers);
+        powers[4] = t.x();
+        powers[5] = t.y();
+        powers[6] = t.z();
 
-        //     mavlink_msg_actuator_control_target_send(MAVLINK_COMM_0, millis(),
-        //                                              0, Motor::getPower());
-        // }
+        mavlink_msg_actuator_control_target_send(MAVLINK_COMM_0, millis(),
+                                                 0, powers);
 
         // for (static uint32_t rcTimer = 0; millis() - rcTimer > (1000 / 50); rcTimer = millis())
         //     mavlink_msg_rc_channels_send(MAVLINK_COMM_0, millis(), RC::channelCount(),

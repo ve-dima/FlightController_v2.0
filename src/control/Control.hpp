@@ -44,6 +44,7 @@ namespace Control
     Eigen::Vector3f getTargetRate();
     Eigen::Quaternionf getTargetAttitude();
     float getTargetThrust();
+    Eigen::Vector3f getTargetThrustVector();
 
     void setTargetRate(Eigen::Vector3f);
     void setTargetAttitude(Eigen::Quaternionf);

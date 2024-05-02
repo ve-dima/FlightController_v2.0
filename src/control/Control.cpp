@@ -42,6 +42,7 @@ namespace Control
     Eigen::Vector3f getTargetRate() { return targetRate; }
     Eigen::Quaternionf getTargetAttitude() { return targetAttitude; }
     float getTargetThrust() { return targetThrust; }
+    Eigen::Vector3f getTargetThrustVector() { return targetTrustVector; }
 
     void setTargetRate(Eigen::Vector3f rate) { targetRate = rate; }
     void setTargetAttitude(Eigen::Quaternionf att) { targetAttitude = att; }
@@ -62,10 +63,6 @@ namespace Control
             };
         } outPower = {.array = {0, 0, 0, 0}};
 
-        outPower.frontLeft -= targetTrustVector.x();
-        outPower.frontLeft -= targetTrustVector.y();
-        outPower.frontLeft += targetTrustVector.z();
-
         outPower.frontRight += targetTrustVector.x();
         outPower.frontRight -= targetTrustVector.y();
         outPower.frontRight -= targetTrustVector.z();
@@ -74,9 +71,34 @@ namespace Control
         outPower.backLeft += targetTrustVector.y();
         outPower.backLeft -= targetTrustVector.z();
 
-        outPower.backRight += targetTrustVector.x();
-        outPower.backRight += targetTrustVector.y();
+        outPower.frontLeft += targetTrustVector.x();
+        outPower.frontLeft += targetTrustVector.y();
+        outPower.frontLeft += targetTrustVector.z();
+
+        outPower.backRight -= targetTrustVector.x();
+        outPower.backRight -= targetTrustVector.y();
         outPower.backRight += targetTrustVector.z();
+
+        float minThrust = INFINITY, maxTrust = -INFINITY;
+        for (float &p : outPower.array)
+            minThrust = std::min(minimalTrust, p),
+            maxTrust = std::max(maxTrust, p);
+
+        const float len = maxTrust - minThrust,
+                    maxLen = (1 - minimalTrust);
+        if (len > maxLen)
+        {
+            const float multiplier = (1 - minimalTrust) / len;
+            for (float &p : outPower.array)
+                p = (p - minThrust) * multiplier + minimalTrust;
+        }
+        else
+        {
+            const float adder = std::max(minimalTrust,
+                                         std::min((1 - len), targetThrust));
+            for (float &p : outPower.array)
+                p = (p - minThrust) + adder;
+        }
 
         for (int i = 0; i < 4; i++)
             Motor::setPower(i, outPower.array[i]);

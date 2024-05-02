@@ -19,7 +19,7 @@ namespace Motor
             return false;
 
         if (not std::isfinite(motorPower))
-            motorPower = -1;
+            motorPower = NAN;
         else if (motorPower > 1)
             motorPower = 1;
 
@@ -44,7 +44,7 @@ namespace Motor
         if (state == State::disarming or state == State::disarmed)
             return;
 
-        std::fill(power, &power[maxCount], 0);
+        std::fill(power, &power[maxCount], NAN);
         disarmTimeStamp = millis();
         state = State::disarming;
         debugUart.println("Disarming motor");
