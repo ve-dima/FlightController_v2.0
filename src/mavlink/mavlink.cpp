@@ -18,7 +18,7 @@ namespace mavlink
         for (static uint32_t hearBeatTimer = 0; millis() - hearBeatTimer > 500; hearBeatTimer = millis())
             mavlink_msg_heartbeat_send(MAVLINK_COMM_0, MAV_TYPE::MAV_TYPE_IMU, MAV_AUTOPILOT::MAV_AUTOPILOT_INVALID, 0, 0, 0);
 
-        for (static uint32_t attTimer = 0; millis() - attTimer > 50; attTimer = millis())
+        for (static uint32_t attTimer = 0; millis() - attTimer > 250; attTimer = millis())
         {
             const auto attitude = AHRS::getFRD_Attitude();
             const auto targetRate = Control::getTargetRate();
@@ -44,6 +44,15 @@ namespace mavlink
 
             mavlink_msg_actuator_control_target_send(MAVLINK_COMM_0, millis(),
                                                      0, powers);
+        }
+
+        for (static uint32_t timer = 0; millis() - timer > 25; timer = millis())
+        {
+            const Eigen::Vector3f acc = AHRS::getAcceleration();
+            const Eigen::Vector3f lAcc = AHRS::getLinearAcceleration();
+            mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
+                                                acc.x(), acc.y(), acc.z(),
+                                                lAcc.x(), lAcc.y(), lAcc.z());
         }
 
         // for (static uint32_t rcTimer = 0; millis() - rcTimer > (1000 / 50); rcTimer = millis())

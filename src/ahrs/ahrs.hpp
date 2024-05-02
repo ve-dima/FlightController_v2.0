@@ -18,4 +18,6 @@ namespace AHRS
 
     Eigen::Quaternionf getFRU_Attitude();
     Eigen::Quaternionf getFRD_Attitude();
+
+    Eigen::Vector3f getLinearAcceleration();
 }

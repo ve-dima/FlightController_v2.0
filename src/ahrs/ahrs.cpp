@@ -44,6 +44,8 @@ namespace AHRS
     Eigen::Quaternionf attitude = Eigen::Quaternionf(1, 0, 0, 0);
     float G = 1;
 
+    Eigen::Vector3f linearAcceleration;
+
     Eigen::Vector3f getRawRSpeed() { return rawRSpeed; }
     Eigen::Vector3f getRAcceleration() { return Eigen::Vector3f(0, 0, 0); }
 
@@ -56,13 +58,24 @@ namespace AHRS
     Eigen::Quaternionf getFRU_Attitude() { return attitude; }
     Eigen::Quaternionf getFRD_Attitude() { return Eigen::Quaternionf(attitude.w(), attitude.x(), attitude.y(), -attitude.z()); }
 
-    void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f acc, float dT)
+    Eigen::Vector3f getLinearAcceleration() { return linearAcceleration; }
+
+    void update()
+    {
+        Eigen::Quaternionf current = attitude;
+        Eigen::Quaternionf worldFrameAcc = (current.conjugate() *
+                                            Eigen::Quaternionf(0.f, acceleration.x(), acceleration.y(), acceleration.z())) *
+                                           current;
+        linearAcceleration = worldFrameAcc.vec() - Eigen::Vector3f(0, 0, 1);
+    }
+
+    void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f rAcc, float dT)
     {
         rawRSpeed = rSpeed;
-        rawAcceleration = acc;
+        rawAcceleration = rAcc;
 
         rotateSpeed = rSpeed - Eigen::Vector3f{gyroscopeOffset};
-        acceleration = acc - Eigen::Vector3f{accelerometerOffset};
+        acceleration = rAcc - Eigen::Vector3f{accelerometerOffset};
 
         Eigen::Quaternionf current = attitude;
 
@@ -79,9 +92,9 @@ namespace AHRS
         float gain = accelerationFilterGain - std::abs(G - 1) * accelerationRejection;
         gain = std::clamp(gain, 0.f, 1.f);
 
-        acceleration *= (1.f / G);
+        const Eigen::Vector3f normAcc = acceleration * (1.f / G);
         Eigen::Quaternionf worldFrameAcc = (current.conjugate() *
-                                            Eigen::Quaternionf(0.f, acceleration.x(), acceleration.y(), acceleration.z())) *
+                                            Eigen::Quaternionf(0.f, normAcc.x(), normAcc.y(), normAcc.z())) *
                                            current;
         Eigen::Quaternionf accDeltaQ;
         accDeltaQ.w() = std::sqrt((worldFrameAcc.z() + 1) / 2);
@@ -92,6 +105,8 @@ namespace AHRS
 
         if (accDeltaQ.coeffs().allFinite())
             attitude = (current * accDeltaQ).normalized();
+
+        update();
     }
 
     void updateByMagnetometer(Eigen::Vector3f field)
