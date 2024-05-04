@@ -119,3 +119,7 @@ target_include_directories(${PROJECT_NAME}
 )
 target_link_options(${PROJECT_NAME} PUBLIC -Wl,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map)
 target_link_libraries (${PROJECT_NAME} Eigen3::Eigen)
+
+# enable_testing()
+# add_subdirectory(test)
+# target_link_libraries(UnitTest Eigen3::Eigen)

@@ -25,7 +25,7 @@ def angle_between(v1, v2):
 
 
 np.set_printoptions(precision=2, floatmode='fixed', suppress=True)
-imuConnection = mavutil.mavlink_connection('COM12', baud=115_200)
+imuConnection = mavutil.mavlink_connection('COM5', baud=115_200)
 
 
 def handler(signum, frame):

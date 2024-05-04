@@ -4,6 +4,9 @@
 #include "control/Control.hpp"
 #include "indicators/LED.hpp"
 #include "rc/RC.hpp"
+#include "param/param.hpp"
+
+float manualMaxTilt = 35 * (M_PI / 180);
 
 Stabilize stabilizeMode;
 
@@ -30,5 +33,18 @@ void Stabilize::onEnter()
 
 void Stabilize::attitudeTickHandler()
 {
+    Eigen::Quaternionf setPoint;
+
+    Eigen::Vector3f targetTilt{
+        RC::channel(RC::ChannelFunction::ROLL) * manualMaxTilt,
+        RC::channel(RC::ChannelFunction::PITCH) * manualMaxTilt, 0};
+    float tiltAngle = targetTilt.norm();
+    if (tiltAngle > manualMaxTilt)
+        targetTilt *= manualMaxTilt / tiltAngle,
+            tiltAngle = manualMaxTilt;
+    setPoint = Eigen::Quaternionf(Eigen::AngleAxisf(tiltAngle, targetTilt));
+
+    Control::setTargetAttitude(setPoint);
 }
 
+PARAM_ADD(param::FLOAT, MPC_MAN_TILT_MAX, &manualMaxTilt);

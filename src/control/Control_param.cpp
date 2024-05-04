@@ -51,6 +51,7 @@ namespace Control
             }}};
 
     float minimalTrust = 0.1;
+    float yawWeight = 0.4;
 
     void parameterUpdate()
     {
@@ -78,6 +79,7 @@ namespace Control
         rateSettings.axis.yaw.maxICoef = std::clamp<float>(rateSettings.axis.yaw.maxICoef, 0, 1);
 
         minimalTrust = std::clamp<float>(minimalTrust, 0.05, 0.5);
+        yawWeight = std::clamp<float>(yawWeight, 0, 1);
     }
 
     PARAM_ADD_WITH_CALLBACK(param::FLOAT, MC_ROLL_P, &angleSettings.axis.roll.P, parameterUpdate);
@@ -108,4 +110,5 @@ namespace Control
     PARAM_ADD_WITH_CALLBACK(param::FLOAT, MC_YR_INT_LIM, &rateSettings.axis.yaw.maxICoef, parameterUpdate);
 
     PARAM_ADD_WITH_CALLBACK(param::FLOAT, MPC_THR_MIN, &minimalTrust, parameterUpdate);
+    PARAM_ADD_WITH_CALLBACK(param::FLOAT, MC_YAW_WEIGH, &yawWeight, parameterUpdate);
 }

@@ -7,6 +7,9 @@
 #include "motor/motor.hpp"
 #include "rc/RC.hpp"
 
+extern Eigen::Vector3f dcm_z(const Eigen::Quaternionf &q);
+extern Eigen::Quaternionf from2vec(const Eigen::Vector3f &u, const Eigen::Vector3f &v);
+
 namespace mavlink
 {
     void init() {}
@@ -18,13 +21,18 @@ namespace mavlink
         for (static uint32_t hearBeatTimer = 0; millis() - hearBeatTimer > 500; hearBeatTimer = millis())
             mavlink_msg_heartbeat_send(MAVLINK_COMM_0, MAV_TYPE::MAV_TYPE_IMU, MAV_AUTOPILOT::MAV_AUTOPILOT_INVALID, 0, 0, 0);
 
-        for (static uint32_t attTimer = 0; millis() - attTimer > 250; attTimer = millis())
+        for (static uint32_t attTimer = 0; millis() - attTimer > 100; attTimer = millis())
         {
-            const auto attitude = AHRS::getFRD_Attitude();
+            auto attitude = AHRS::getFRD_Attitude();
             const auto targetRate = Control::getTargetRate();
             const auto targetAttitude = Control::getTargetAttitude();
             const auto targetThrust = Control::getTargetThrust();
             const float mavTAtt[4] = {targetAttitude.w(), targetAttitude.x(), targetAttitude.y(), targetAttitude.z()};
+
+            const Eigen::Vector3f z_unit(0.f, 0.f, 1.f);
+            const Eigen::Vector3f e_z = dcm_z(attitude);
+            Eigen::Quaternionf qd_red = from2vec(z_unit, e_z);
+            attitude = qd_red.conjugate() * attitude;
 
             mavlink_msg_attitude_quaternion_send(MAVLINK_COMM_0, millis(),
                                                  attitude.w(), attitude.x(), attitude.y(), attitude.z(),
@@ -46,7 +54,7 @@ namespace mavlink
                                                      0, powers);
         }
 
-        for (static uint32_t timer = 0; millis() - timer > 25; timer = millis())
+        for (static uint32_t timer = 0; millis() - timer > 100; timer = millis())
         {
             const Eigen::Vector3f acc = AHRS::getAcceleration();
             const Eigen::Vector3f lAcc = AHRS::getLinearAcceleration();

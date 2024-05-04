@@ -35,6 +35,7 @@ namespace Control
     } extern rateSettings, angleSettings;
 
     extern float minimalTrust;
+    extern float yawWeight;
 
     void rateHandler();
     void velocityHandler();
