@@ -42,6 +42,7 @@ namespace AHRS
     Eigen::Vector3f rawRSpeed, rotateSpeed;
     Eigen::Vector3f rawAcceleration, acceleration;
     Eigen::Quaternionf attitude = Eigen::Quaternionf(1, 0, 0, 0);
+    Eulerf eulerAttitude;
     float G = 1;
 
     Eigen::Vector3f linearAcceleration;
@@ -57,16 +58,31 @@ namespace AHRS
 
     Eigen::Quaternionf getFRU_Attitude() { return attitude; }
     Eigen::Quaternionf getFRD_Attitude() { return Eigen::Quaternionf(attitude.w(), attitude.x(), attitude.y(), -attitude.z()); }
+    Eulerf getEulerFRD() { return eulerAttitude; }
 
     Eigen::Vector3f getLinearAcceleration() { return linearAcceleration; }
 
     void update()
     {
-        Eigen::Quaternionf current = attitude;
-        Eigen::Quaternionf worldFrameAcc = (current.conjugate() *
+        Eigen::Quaternionf worldFrameAcc = (attitude.conjugate() *
                                             Eigen::Quaternionf(0.f, acceleration.x(), acceleration.y(), acceleration.z())) *
-                                           current;
+                                           attitude;
         linearAcceleration = worldFrameAcc.vec() - Eigen::Vector3f(0, 0, 1);
+
+        Eigen::Quaternionf attitude = getFRD_Attitude();
+        float sinr_cosp = 2 * (attitude.w() * attitude.x() + attitude.y() * attitude.z());
+        float cosr_cosp = 1 - 2 * (attitude.x() * attitude.x() + attitude.y() * attitude.y());
+        eulerAttitude.roll = std::atan2(sinr_cosp, cosr_cosp);
+
+        float sinp = 2 * (attitude.w() * attitude.y() - attitude.x() * attitude.z());
+        if (std::abs(sinp) >= 1)
+            eulerAttitude.pitch = std::copysign<float>(M_PI / 2, sinp); // use 90 degrees if out of range
+        else
+            eulerAttitude.pitch = std::asin(sinp);
+
+        float siny_cosp = 2 * (attitude.w() * attitude.z() + attitude.x() * attitude.y());
+        float cosy_cosp = 1 - 2 * (attitude.y() * attitude.y() + attitude.z() * attitude.z());
+        eulerAttitude.yaw = std::atan2(siny_cosp, cosy_cosp);
     }
 
     void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f rAcc, float dT)

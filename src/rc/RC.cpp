@@ -25,7 +25,7 @@ namespace RC
 
     int32_t _channelsAssign[static_cast<int>(ChannelFunction::__end)] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     float _minChannelValue[maxChannelCount] = {191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191},
-          _maxChannelValue[maxChannelCount] = {1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811},
+          _maxChannelValue[maxChannelCount] = {1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792},
           _channelDeadZone[maxChannelCount] = {5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
           _channelIsReverse[maxChannelCount] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     ProtocolDetector _selectedProtocol = ProtocolDetector::CRSF;

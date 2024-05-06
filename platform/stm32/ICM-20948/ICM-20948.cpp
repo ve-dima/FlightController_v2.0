@@ -5,6 +5,7 @@
 #include "mavlink/common/mavlink.h"
 #include "ahrs/ahrs.hpp"
 #include "control/Control.hpp"
+#include "modes/Modes.hpp"
 
 
 using namespace InvenSense_ICM20948;
@@ -206,6 +207,7 @@ namespace ICM20948
 
 
         AHRS::updateByIMU(gyro, accel, 1 / 224.77);
+        FlightModeDispatcher::attitudeTickHandler();
         Control::velocityHandler();
         Control::rateHandler();
         Control::updateMotorPower();

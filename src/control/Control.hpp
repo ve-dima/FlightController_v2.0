@@ -11,17 +11,7 @@ namespace Control
         velocity,
         angle,
     };
-
-    union Modes_t
-    {
-        std::array<AngleControlMode, 3> modes;
-        struct
-        {
-            AngleControlMode roll;
-            AngleControlMode pitch;
-            AngleControlMode yaw;
-        } axis;
-    } extern angleModes;
+    extern AngleControlMode angleMode;
 
     union PIDSettings
     {

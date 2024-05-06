@@ -4,6 +4,13 @@
 
 namespace AHRS
 {
+    struct Eulerf
+    {
+        float roll,
+            pitch,
+            yaw;
+    };
+
     void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f acceleration, float dT);
     void updateByMagnetometer(Eigen::Vector3f field);
 
@@ -18,6 +25,8 @@ namespace AHRS
 
     Eigen::Quaternionf getFRU_Attitude();
     Eigen::Quaternionf getFRD_Attitude();
+    Eulerf getEulerFRU();
+    Eulerf getEulerFRD();
 
     Eigen::Vector3f getLinearAcceleration();
 }

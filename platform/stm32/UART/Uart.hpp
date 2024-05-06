@@ -33,6 +33,9 @@ private:
 
     bool autoSend = true;
 
+    void (*idleCallback)(void) = nullptr;
+    void (*halfFullCallback)(void) = nullptr;
+
 public:
     enum class ParityControl
     {

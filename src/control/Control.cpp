@@ -29,13 +29,7 @@ Eigen::Quaternionf from2vec(const Eigen::Vector3f &u, const Eigen::Vector3f &v)
 namespace Control
 {
     static constexpr float iReducerMaxRate = 400;
-
-    Modes_t angleModes = {
-        .axis = {
-            .roll = AngleControlMode::angle,
-            .pitch = AngleControlMode::angle,
-            .yaw = AngleControlMode::angle,
-        }};
+    AngleControlMode angleMode = AngleControlMode::angle;
 
     union
     {
@@ -149,6 +143,9 @@ namespace Control
     /// Второй каскад управления - P-контроллер наклонов
     void velocityHandler()
     {
+        if (angleMode == AngleControlMode::velocity)
+            return;
+
         Eigen::Vector3f target = targetRate;
         Eigen::Quaternionf attitude = AHRS::getFRU_Attitude();
 
@@ -191,8 +188,7 @@ namespace Control
             angleError = -angleError;
 
         for (int axis = 0; axis < 3; axis++)
-            if (angleModes.modes[axis] == AngleControlMode::angle)
-                target[axis] = anglePid.pids[axis].calculate(angleError[axis], 0, 0);
+            target[axis] = anglePid.pids[axis].calculate(angleError[axis], 0, 0);
         // only P-part, I- & D- disabled
 
         targetRate = target;

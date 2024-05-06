@@ -6,7 +6,7 @@
 #include "rc/RC.hpp"
 #include "param/param.hpp"
 
-float manualMaxTilt = 35 * (M_PI / 180);
+float manualMaxTilt = 90 * (M_PI / 180);
 
 Stabilize stabilizeMode;
 
@@ -40,8 +40,8 @@ void Stabilize::attitudeTickHandler()
         RC::channel(RC::ChannelFunction::PITCH) * manualMaxTilt, 0};
     float tiltAngle = targetTilt.norm();
     if (tiltAngle > manualMaxTilt)
-        targetTilt *= manualMaxTilt / tiltAngle,
-            tiltAngle = manualMaxTilt;
+        tiltAngle = manualMaxTilt;
+    targetTilt *= (1 / tiltAngle);
     setPoint = Eigen::Quaternionf(Eigen::AngleAxisf(tiltAngle, targetTilt));
 
     Control::setTargetAttitude(setPoint);

@@ -24,6 +24,8 @@ namespace mavlink
         for (static uint32_t attTimer = 0; millis() - attTimer > 100; attTimer = millis())
         {
             auto attitude = AHRS::getFRD_Attitude();
+            // const AHRS::Eulerf eulerAttitude = AHRS::getEulerFRD();
+            const auto rotateRate = AHRS::getRSpeed();
             const auto targetRate = Control::getTargetRate();
             const auto targetAttitude = Control::getTargetAttitude();
             const auto targetThrust = Control::getTargetThrust();
@@ -35,8 +37,12 @@ namespace mavlink
             attitude = qd_red.conjugate() * attitude;
 
             mavlink_msg_attitude_quaternion_send(MAVLINK_COMM_0, millis(),
-                                                 attitude.w(), attitude.x(), attitude.y(), attitude.z(),
-                                                 NAN, NAN, NAN, nullptr);
+                                                 targetAttitude.w(), targetAttitude.x(), targetAttitude.y(), -targetAttitude.z(),
+                                                 rotateRate.x(), rotateRate.y(), -rotateRate.z(), nullptr);
+
+            // mavlink_msg_attitude_send(MAVLINK_COMM_0, millis(),
+            //                           eulerAttitude.roll, eulerAttitude.pitch, eulerAttitude.yaw,
+            //                           rotateRate.x(), rotateRate.y(), -rotateRate.z());
 
             mavlink_msg_attitude_target_send(MAVLINK_COMM_0, millis(),
                                              0, mavTAtt,
@@ -104,7 +110,7 @@ namespace mavlink
                                          RC::channel(15) * 1000 + 1000,
                                          RC::channel(16) * 1000 + 1000,
                                          RC::channel(17) * 1000 + 1000,
-                                         0,
+                                         RC::channel(18) * 1000 + 1000,
                                          RC::rssi());
     }
     REGISTER_SRT_MODULE(mavlink, init, enable, handler);
