@@ -193,6 +193,6 @@ void mavlink_end_uart_send(mavlink_channel_t chan, int length)
 
 extern "C" void EXTI0_IRQHandler(void)
 {
-    EXTI->PR1 = EXTI_PR1_PIF0;
     RC::callBackHandler();
+    EXTI->PR1 = EXTI_PR1_PIF0;
 }

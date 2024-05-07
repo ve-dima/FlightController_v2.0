@@ -10,10 +10,10 @@ static constexpr uint16_t txBufferSize = 256;
 class UART : public Stream
 {
 private:
-    USART_TypeDef *const usart;
+    volatile USART_TypeDef *const usart;
     const uint32_t usartFreq;
-    DMA_TypeDef *const dma;
-    DMA_Channel_TypeDef *const tx_Stream, *const rx_Stream;
+    volatile DMA_TypeDef *const dma;
+    volatile DMA_Channel_TypeDef *const tx_Stream, *const rx_Stream;
     const uint32_t txStreamChannel, rxStreamChannel;
 
     bool parityErrorFlag = false;

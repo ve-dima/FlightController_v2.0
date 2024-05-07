@@ -19,7 +19,7 @@ namespace mavlink
     void handler()
     {
         for (static uint32_t hearBeatTimer = 0; millis() - hearBeatTimer > 500; hearBeatTimer = millis())
-            mavlink_msg_heartbeat_send(MAVLINK_COMM_0, MAV_TYPE::MAV_TYPE_IMU, MAV_AUTOPILOT::MAV_AUTOPILOT_INVALID, 0, 0, 0);
+            mavlink_msg_heartbeat_send(MAVLINK_COMM_0, MAV_TYPE::MAV_TYPE_QUADROTOR, MAV_AUTOPILOT::MAV_AUTOPILOT_GENERIC, 0, 0, 0);
 
         for (static uint32_t attTimer = 0; millis() - attTimer > 100; attTimer = millis())
         {
@@ -31,13 +31,10 @@ namespace mavlink
             const auto targetThrust = Control::getTargetThrust();
             const float mavTAtt[4] = {targetAttitude.w(), targetAttitude.x(), targetAttitude.y(), targetAttitude.z()};
 
-            const Eigen::Vector3f z_unit(0.f, 0.f, 1.f);
-            const Eigen::Vector3f e_z = dcm_z(attitude);
-            Eigen::Quaternionf qd_red = from2vec(z_unit, e_z);
-            attitude = qd_red.conjugate() * attitude;
+
 
             mavlink_msg_attitude_quaternion_send(MAVLINK_COMM_0, millis(),
-                                                 targetAttitude.w(), targetAttitude.x(), targetAttitude.y(), -targetAttitude.z(),
+                                                 attitude.w(), attitude.x(), attitude.y(), attitude.z(),
                                                  rotateRate.x(), rotateRate.y(), -rotateRate.z(), nullptr);
 
             // mavlink_msg_attitude_send(MAVLINK_COMM_0, millis(),
@@ -60,14 +57,14 @@ namespace mavlink
                                                      0, powers);
         }
 
-        for (static uint32_t timer = 0; millis() - timer > 100; timer = millis())
-        {
-            const Eigen::Vector3f acc = AHRS::getAcceleration();
-            const Eigen::Vector3f lAcc = AHRS::getLinearAcceleration();
-            mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
-                                                acc.x(), acc.y(), acc.z(),
-                                                lAcc.x(), lAcc.y(), lAcc.z());
-        }
+        // for (static uint32_t timer = 0; millis() - timer > 100; timer = millis())
+        // {
+        //     const Eigen::Vector3f acc = AHRS::getAcceleration();
+        //     const Eigen::Vector3f lAcc = AHRS::getLinearAcceleration();
+        //     mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
+        //                                         acc.x(), acc.y(), acc.z(),
+        //                                         lAcc.x(), lAcc.y(), lAcc.z());
+        // }
 
         // for (static uint32_t rcTimer = 0; millis() - rcTimer > (1000 / 50); rcTimer = millis())
         //     mavlink_msg_rc_channels_send(MAVLINK_COMM_0, millis(), RC::channelCount(),

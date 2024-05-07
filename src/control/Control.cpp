@@ -80,21 +80,21 @@ namespace Control
             };
         } outPower = {.array = {0, 0, 0, 0}};
 
-        outPower.frontRight += targetTrustVector.x();
-        outPower.frontRight -= targetTrustVector.y();
-        outPower.frontRight -= targetTrustVector.z();
+        outPower.frontRight -= targetTrustVector.x();
+        outPower.frontRight += targetTrustVector.y();
+        outPower.frontRight += targetTrustVector.z();
 
-        outPower.backLeft -= targetTrustVector.x();
-        outPower.backLeft += targetTrustVector.y();
-        outPower.backLeft -= targetTrustVector.z();
+        outPower.backLeft += targetTrustVector.x();
+        outPower.backLeft -= targetTrustVector.y();
+        outPower.backLeft += targetTrustVector.z();
 
         outPower.frontLeft += targetTrustVector.x();
         outPower.frontLeft += targetTrustVector.y();
-        outPower.frontLeft += targetTrustVector.z();
+        outPower.frontLeft -= targetTrustVector.z();
 
         outPower.backRight -= targetTrustVector.x();
         outPower.backRight -= targetTrustVector.y();
-        outPower.backRight += targetTrustVector.z();
+        outPower.backRight -= targetTrustVector.z();
 
         float minThrust = INFINITY, maxTrust = -INFINITY;
         for (float &p : outPower.array)
@@ -147,7 +147,7 @@ namespace Control
             return;
 
         Eigen::Vector3f target = targetRate;
-        Eigen::Quaternionf attitude = AHRS::getFRU_Attitude();
+        Eigen::Quaternionf attitude = AHRS::getFRD_Attitude();
 
         Eigen::Quaternionf qd = targetAttitude;
 

@@ -246,7 +246,11 @@ namespace RC
 
     void callBackHandler()
     {
-        while (RC_UART.available() > 16)
+        static uint32_t handlerMaxTime = 0, acc = 0, minPeriod = UINT32_MAX;
+        static uint32_t enterTime = 0;
+        minPeriod = std::min(minPeriod, tick() - enterTime);
+        enterTime = tick();
+        // while (RC_UART.available() > 16)
         {
             uint8_t buff[64];
             size_t count = RC_UART.readBytes(buff, std::min<size_t>(sizeof(buff), RC_UART.available()));
@@ -266,6 +270,8 @@ namespace RC
 
             RC_UART.clearParityErrorFlag();
         }
+        handlerMaxTime = std::max(handlerMaxTime, tick() - enterTime);
+        acc += tick() - enterTime;
     }
 
     REGISTER_SRT_MODULE(RC, init, enable, handler);
