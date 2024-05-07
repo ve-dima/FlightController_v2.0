@@ -33,9 +33,6 @@ private:
 
     bool autoSend = true;
 
-    void (*idleCallback)(void) = nullptr;
-    void (*halfFullCallback)(void) = nullptr;
-
 public:
     enum class ParityControl
     {
@@ -85,6 +82,9 @@ public:
 
     bool getParityErrorFlag() { return parityErrorFlag; }
     void clearParityErrorFlag() { parityErrorFlag = 0; }
+
+    void (*idleCallback)(void) = nullptr;
+    void (*halfFullCallback)(void) = nullptr;
 };
 
 #ifdef USART1

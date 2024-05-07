@@ -12,6 +12,7 @@ private:
     // uint32_t stickTimer;
     // EulerF setAngle;
     // bool stickWasOnCenter = false;
+    float manualYawSetPoint = 0;
 
 public:
     virtual const char *const name() { return "stabilize"; }

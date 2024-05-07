@@ -207,6 +207,7 @@ namespace ICM20948
 
 
         AHRS::updateByIMU(gyro, accel, 1 / 224.77);
+        FlightModeDispatcher::switchHandler();
         FlightModeDispatcher::attitudeTickHandler();
         Control::velocityHandler();
         Control::rateHandler();

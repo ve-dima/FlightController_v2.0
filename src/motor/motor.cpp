@@ -45,6 +45,8 @@ namespace Motor
             return;
 
         std::fill(power, &power[maxCount], NAN);
+        for (unsigned i = 0; i < maxCount; i++)
+            updateOutput(i);
         disarmTimeStamp = millis();
         state = State::disarming;
         debugUart.println("Disarming motor");
@@ -57,6 +59,8 @@ namespace Motor
             return;
 
         std::fill(power, &power[maxCount], 0);
+        for (unsigned i = 0; i < maxCount; i++)
+            updateOutput(i);
         armTimeStamp = millis();
         state = State::arming;
         debugUart.println("Arming motor");

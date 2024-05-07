@@ -105,11 +105,7 @@ namespace RC
 
             normalizedValue = normalizedValue * 2 - 1;
             normalizedValue = std::clamp<float>(normalizedValue, -1, 1);
-            bool inDZ = std::abs(normalizedValue) <= (_channelDeadZone[i] * 1e-3);
-
-            if (inDZ)
-                normalizedValue = 0;
-            _channelInDZ[i] = inDZ;
+            _channelInDZ[i] = std::abs(normalizedValue) <= (_channelDeadZone[i] * 1e-3);
             _channels[i] = normalizedValue;
             _channelsRaw[i] = channels[i];
         }
@@ -244,6 +240,12 @@ namespace RC
 
     void handler()
     {
+        if (millis() - _lastValidTimestamp > signalLoseTimeout)
+            _state = State::signal_lose;
+    }
+
+    void callBackHandler()
+    {
         while (RC_UART.available() > 16)
         {
             uint8_t buff[64];
@@ -264,9 +266,6 @@ namespace RC
 
             RC_UART.clearParityErrorFlag();
         }
-
-        if (millis() - _lastValidTimestamp > signalLoseTimeout)
-            _state = State::signal_lose;
     }
 
     REGISTER_SRT_MODULE(RC, init, enable, handler);

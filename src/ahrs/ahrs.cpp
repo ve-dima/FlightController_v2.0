@@ -87,6 +87,7 @@ namespace AHRS
 
     void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f rAcc, float dT)
     {
+        lastDT = dT;
         rawRSpeed = rSpeed;
         rawAcceleration = rAcc;
 

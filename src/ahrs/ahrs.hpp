@@ -29,4 +29,6 @@ namespace AHRS
     Eulerf getEulerFRD();
 
     Eigen::Vector3f getLinearAcceleration();
+
+    inline float lastDT = 0;
 }

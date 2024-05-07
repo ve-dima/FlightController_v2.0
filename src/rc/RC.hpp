@@ -66,6 +66,8 @@ namespace RC
 
     void update(int16_t channels[], unsigned channelCount, uint8_t rssi, bool signalAvailable);
     void checkValues();
+
+    void callBackHandler();
 };
 
 class RC_parser

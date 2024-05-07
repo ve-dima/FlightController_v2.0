@@ -2,6 +2,7 @@
 #include "Board.hpp"
 #include <stm32g4xx.h>
 #include "UART/Uart.hpp"
+#include "rc/RC.hpp"
 
 void setup()
 {
@@ -9,7 +10,7 @@ void setup()
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
     DWT->CYCCNT = 0;
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-    
+
     SystemInit();
     SystemCoreClockUpdate();
     SysTick_Config(F_CPU / 1'000);
@@ -163,6 +164,15 @@ void setup()
     mav1Uart.setAutoSend(false);
     mav1Uart.begin(115'200);
     debugUart.begin(115'200);
+
+    EXTI->IMR1 |= EXTI_IMR1_IM0;
+    EXTI->RTSR1 |= EXTI_RTSR1_RT0;
+    RC_UART.idleCallback = []()
+    {
+        EXTI->SWIER1 = EXTI_SWIER1_SWI0;
+    };
+    NVIC_SetPriority(EXTI0_IRQn, 3);
+    NVIC_EnableIRQ(EXTI0_IRQn);
 }
 
 void mavlink_send_uart_bytes(mavlink_channel_t chan, const uint8_t *ch, uint16_t length)
@@ -179,4 +189,10 @@ void mavlink_end_uart_send(mavlink_channel_t chan, int length)
         mav0Uart.startTX();
     if (chan == MAVLINK_COMM_1)
         mav1Uart.startTX();
+}
+
+extern "C" void EXTI0_IRQHandler(void)
+{
+    EXTI->PR1 = EXTI_PR1_PIF0;
+    RC::callBackHandler();
 }

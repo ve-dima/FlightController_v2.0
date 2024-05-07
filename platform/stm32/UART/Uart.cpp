@@ -189,6 +189,8 @@ void UART::uartIqrHandler()
         (void)usart->RDR;
         usart->ICR = USART_ICR_IDLECF;
         usart_rx_check();
+        if(idleCallback != nullptr)
+            idleCallback();
     }
 }
 
