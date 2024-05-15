@@ -1,7 +1,9 @@
 #include <stm32g4xx.h>
 #include "ICM-20948/ICM-20948.hpp"
+#include "BMP280/BMP280.hpp"
 #include "modes/Modes.hpp"
 #include "control/Control.hpp"
+#include "SRT/SRT.hpp"
 
 namespace IMU
 {
@@ -21,22 +23,24 @@ namespace IMU
 
     void enable()
     {
-
     }
 
     void handler()
     {
-
+        ICM20948::handler();
     }
 
     extern "C" void TIM6_DAC_IRQHandler(void)
     {
         TIM6->SR = ~TIM_SR_UIF;
         ICM20948::isr();
+        BMP280::handler();
         FlightModeDispatcher::switchHandler();
         FlightModeDispatcher::attitudeTickHandler();
         Control::velocityHandler();
         Control::rateHandler();
         Control::updateMotorPower();
     }
+
+    REGISTER_SRT_MODULE(imu, init, enable, handler);
 };

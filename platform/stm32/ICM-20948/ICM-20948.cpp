@@ -220,12 +220,10 @@ namespace ICM20948
                 delayTime = 100;
             }
             else
-            {
-                __BKPT(0);
-            }
+                state = STATE::RESET;
+
             break;
         }
-
         case STATE::CONFIGURE:
         {
             for (const auto &reg_cfg : _register_bank0_cfg)
@@ -267,7 +265,7 @@ namespace ICM20948
                 NVIC_EnableIRQ(TIM6_DAC_IRQn);
             }
             else
-                __BKPT(0);
+                state = STATE::RESET;
             break;
         }
         default:

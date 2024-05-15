@@ -13,6 +13,8 @@ namespace AHRS
 
     void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f acceleration, float dT);
     void updateByMagnetometer(Eigen::Vector3f field);
+    void updateByPressure(float P);
+    void updateByTemperature(float T);
 
     Eigen::Vector3f getRawRSpeed();
     Eigen::Vector3f getRAcceleration();

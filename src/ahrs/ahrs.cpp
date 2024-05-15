@@ -45,6 +45,8 @@ namespace AHRS
     Eulerf eulerAttitude;
     float G = 1;
 
+    float pressure, temperature;
+
     Eigen::Vector3f linearAcceleration;
 
     Eigen::Vector3f getRawRSpeed() { return rawRSpeed; }
@@ -132,5 +134,15 @@ namespace AHRS
 
     void updateByMagnetometer(Eigen::Vector3f field)
     {
+    }
+
+    void updateByPressure(float P)
+    {
+        pressure = P;
+    }
+
+    void updateByTemperature(float T)
+    {
+        temperature = T;
     }
 }
