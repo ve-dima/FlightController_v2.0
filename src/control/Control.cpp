@@ -3,6 +3,7 @@
 #include <Eigen/Geometry>
 #include "ahrs/ahrs.hpp"
 #include "motor/motor.hpp"
+#include "stm32g4xx.h"
 
 Eigen::Vector3f dcm_z(const Eigen::Quaternionf &q)
 {
@@ -28,8 +29,7 @@ Eigen::Quaternionf from2vec(const Eigen::Vector3f &u, const Eigen::Vector3f &v)
 
 namespace Control
 {
-    static constexpr float iReducerMaxRate = 400;
-    AngleControlMode angleMode = AngleControlMode::angle;
+    static constexpr float iReducerMaxRate = 400 * (M_PI / 180);
 
     union
     {
@@ -51,7 +51,7 @@ namespace Control
                       .yaw = PIDf(angleSettings.axis.yaw),
                   }};
 
-    float targetThrust = 0.5;
+    float targetThrust = 0;
     Eigen::Vector3f targetTrustVector = Eigen::Vector3f(0, 0, 0);
     Eigen::Vector3f targetRate = Eigen::Vector3f(0, 0, 0);
     Eigen::Quaternionf targetAttitude = Eigen::Quaternionf(1, 0, 0, 0);
@@ -80,61 +80,74 @@ namespace Control
             };
         } outPower = {.array = {0, 0, 0, 0}};
 
-        outPower.frontRight -= targetTrustVector.x();
-        outPower.frontRight += targetTrustVector.y();
+        outPower.frontRight += targetTrustVector.x();
+        outPower.backLeft -= targetTrustVector.x();
+        outPower.frontLeft -= targetTrustVector.x();
+        outPower.backRight += targetTrustVector.x();
+
+        outPower.frontRight -= targetTrustVector.y();
+        outPower.backLeft += targetTrustVector.y();
+        outPower.frontLeft -= targetTrustVector.y();
+        outPower.backRight += targetTrustVector.y();
+
         outPower.frontRight += targetTrustVector.z();
-
-        outPower.backLeft += targetTrustVector.x();
-        outPower.backLeft -= targetTrustVector.y();
         outPower.backLeft += targetTrustVector.z();
-
-        outPower.frontLeft += targetTrustVector.x();
-        outPower.frontLeft += targetTrustVector.y();
         outPower.frontLeft -= targetTrustVector.z();
-
-        outPower.backRight -= targetTrustVector.x();
-        outPower.backRight -= targetTrustVector.y();
         outPower.backRight -= targetTrustVector.z();
 
-        float minThrust = INFINITY, maxTrust = -INFINITY;
-        for (float &p : outPower.array)
-            minThrust = std::min(minThrust, p),
-            maxTrust = std::max(maxTrust, p);
+        // float minThrust = INFINITY, maxTrust = -INFINITY;
+        // for (float &p : outPower.array)
+        //     minThrust = std::min(minThrust, p),
+        //     maxTrust = std::max(maxTrust, p);
 
-        const float len = maxTrust - minThrust,
-                    maxLen = (1 - minimalTrust);
-        if (len > maxLen)
+        // const float len = maxTrust - minThrust,
+        //             maxLen = (1 - minimalTrust);
+        // if (len > maxLen)
+        // {
+        //     const float multiplier = (1 - minimalTrust) / len;
+        //     for (float &p : outPower.array)
+        //         p = (p - minThrust) * multiplier + minimalTrust;
+        // }
+        // else
+        // {
+        //     const float adder = std::max(minimalTrust,
+        //                                  std::min<float>((1 - len), 0));
+        //     for (float &p : outPower.array)
+        //         p = (p - minThrust) + adder;
+        // }
+
+        for (int i = 0; i < 4; i++)
+            outPower.array[i] = std::clamp<float>(outPower.array[i] + targetThrust, minimalTrust, 1);
+
+        bool wrongVal = false;
+        for (int i = 0; i < 4; i++)
+            if (not std::isfinite(outPower.array[i]))
+                wrongVal = true;
+        if (wrongVal)
         {
-            const float multiplier = (1 - minimalTrust) / len;
-            for (float &p : outPower.array)
-                p = (p - minThrust) * multiplier + minimalTrust;
-        }
-        else
-        {
-            const float adder = std::max(minimalTrust,
-                                         std::min((1 - len), targetThrust));
-            for (float &p : outPower.array)
-                p = (p - minThrust) + adder;
+            for (int i = 0; i < 4; i++)
+                Motor::setPower(i, NAN);
+            __BKPT(0);
         }
 
         for (int i = 0; i < 4; i++)
-            Motor::setPower(i, outPower.array[i]);
+            Motor::setPower(i, targetThrust);
     }
 
     /// Первый каскад управления - PID-контроллер скорости вращения
     void rateHandler()
     {
-        Eigen::Vector3f target{0, 0, 0};
-
-        const Eigen::Vector3f rateError = targetRate - AHRS::getRSpeed();
+        Eigen::Vector3f target;
+        const Eigen::Vector3f rateError = targetRate - AHRS::getFRD_RSpeed();
         const Eigen::Vector3f rateAcc = AHRS::getRAcceleration();
+        const float dt = AHRS::lastDT;
 
         for (int axis = 0; axis < 3; axis++)
         {
-            // float iReduceFactor = 1 - (rateError[axis] * rateError[axis]) / iReducerMaxRate;
-            // if (iReduceFactor < 0)
-            //     iReduceFactor = 0;
-            target[axis] = ratePid.pids[axis].calculate(rateError[axis], rateAcc[axis], 0);
+            float iReduceFactor = 1 - (rateError[axis] * rateError[axis]) / iReducerMaxRate;
+            if (iReduceFactor < 0 or targetThrust < 0.1)
+                iReduceFactor = 0;
+            target[axis] = ratePid.pids[axis].calculate(rateError[axis], rateAcc[axis], iReduceFactor, dt);
         }
 
         targetTrustVector = target;
@@ -143,15 +156,12 @@ namespace Control
     /// Второй каскад управления - P-контроллер наклонов
     void velocityHandler()
     {
-        if (angleMode == AngleControlMode::velocity)
-            return;
-
+        // return;
         Eigen::Vector3f target = targetRate;
         Eigen::Quaternionf attitude = AHRS::getFRD_Attitude();
-
         Eigen::Quaternionf qd = targetAttitude;
 
-        // calculate reduced desired attitude neglecting vehicle's yaw to prioritize roll and pitch
+        // // calculate reduced desired attitude neglecting vehicle's yaw to prioritize roll and pitch
         const Eigen::Vector3f e_z = dcm_z(attitude);
         const Eigen::Vector3f e_z_d = dcm_z(qd);
         Eigen::Quaternionf q_tiltError = from2vec(e_z, e_z_d);
@@ -182,6 +192,7 @@ namespace Control
                                               std::sin(yawWeight * std::asin(q_mix.z())));
 
         // quaternion attitude control law, qe is rotation from q to qd
+
         Eigen::Vector3f angleError = (attitude.conjugate() * qd).vec();
         angleError *= 2;
         if (attitude.w() < 0)

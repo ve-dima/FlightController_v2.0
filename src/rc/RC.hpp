@@ -10,8 +10,8 @@ namespace RC
     {
         not_connected = 0,
         CRSF,
-        IBUS,
         SBUS,
+        IBUS,
         __end,
     };
 

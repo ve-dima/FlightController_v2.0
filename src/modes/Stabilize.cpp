@@ -7,13 +7,15 @@
 #include "rc/RC.hpp"
 #include "param/param.hpp"
 
-float manualMaxTilt = 15 * (M_PI / 180);
+float manualMaxTilt = 30 * (M_PI / 180);
 float manualYawRate = 150 * (M_PI / 180);
 
 Stabilize stabilizeMode;
 
 bool Stabilize::needEnter(const char *&reason)
 {
+    // return true;
+
     if (RC::channel(RC::ChannelFunction::ARMSWITCH) > 0.2)
     {
         reason = "manual switch";
@@ -44,11 +46,11 @@ float constrainAngle(float x)
 
 void Stabilize::attitudeTickHandler()
 {
-    const float yaw = AHRS::getEulerFRD().yaw;
+    // const float yaw = AHRS::getEulerFRD().yaw;
 
     if (RC::channel(RC::ChannelFunction::THROTTLE) < -0.9)
     {
-        manualYawSetPoint = yaw,
+        // manualYawSetPoint = yaw;
         Control::setTargetThrust(0);
     }
     else
@@ -56,7 +58,7 @@ void Stabilize::attitudeTickHandler()
         Control::setTargetThrust((RC::channel(RC::ChannelFunction::THROTTLE) + 1) / 2);
 
         if (not RC::inDZ(RC::ChannelFunction::YAW))
-            manualYawSetPoint -= RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate,
+            manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate,
                 manualYawSetPoint = constrainAngle(manualYawSetPoint);
     }
     const Eigen::Quaternionf qYawSP(std::cos(manualYawSetPoint / 2.f), 0.f, 0.f, std::sin(manualYawSetPoint / 2.f));
@@ -76,7 +78,7 @@ void Stabilize::attitudeTickHandler()
     else
         qRPSP = Eigen::Quaternionf::Identity();
 
-    const Eigen::Quaternionf setPoint = qRPSP * qYawSP;
+    const Eigen::Quaternionf setPoint = qYawSP * qRPSP;
     Control::setTargetAttitude(setPoint);
 }
 

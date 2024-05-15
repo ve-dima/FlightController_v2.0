@@ -6,13 +6,6 @@
 
 namespace Control
 {
-    enum class AngleControlMode : unsigned
-    {
-        velocity,
-        angle,
-    };
-    extern AngleControlMode angleMode;
-
     union PIDSettings
     {
         struct

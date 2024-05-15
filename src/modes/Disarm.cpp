@@ -14,6 +14,7 @@ void Disarm::onEnter()
 
 bool Disarm::needEnter(const char *&reason)
 {
+    // return false;
     if (RC::channel(RC::ChannelFunction::ARMSWITCH) < 0.2 or
         RC::channel(RC::ChannelFunction::ARMSWITCH) == NAN)
     {
@@ -30,6 +31,8 @@ bool Disarm::needEnter(const char *&reason)
 
 bool Disarm::canExit(const char *&err)
 {
+    // return true;
+
     if (RC::channel(RC::ChannelFunction::ARMSWITCH) < 0.2 or
         RC::channel(RC::ChannelFunction::ARMSWITCH) == NAN)
     {

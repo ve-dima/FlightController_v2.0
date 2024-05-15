@@ -34,14 +34,14 @@ public:
      * @param change Изменение (для расчёта D-части)
      * @return type_t Выход
      */
-    type_t calculate(const type_t error, const type_t change, const float integralReducerFactor = 1)
+    type_t calculate(const type_t error, const type_t change, const float integralReducerFactor = 1, const float dt = 1)
     {
         integral += error * settings.I * integralReducerFactor;
         const type_t pPart = error * settings.P;
         const type_t dPart = change * settings.D;
         integral = std::clamp(integral, -settings.maxICoef, settings.maxICoef);
 
-        output = pPart + integral - dPart;
+        output = pPart - integral - dPart;
         output = std::clamp(output, -settings.max, settings.max);
 
         return output;

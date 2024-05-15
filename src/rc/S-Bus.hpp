@@ -42,5 +42,5 @@ private:
 
 public:
     static constexpr uint8_t channelCount = 18;
-    bool parseData(uint8_t data, bool parityError, int16_t channels[], unsigned &channelCount, uint8_t &rssi, bool &signalAvailable) override final;
+    bool parseData(uint8_t data[], size_t len, bool parityError, int16_t channels[], unsigned &channelCount, uint8_t &rssi, bool &signalAvailable) override final;
 };

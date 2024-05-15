@@ -21,7 +21,7 @@ namespace AHRS
     float getG();
 
     Eigen::Vector3f getRSpeed();
-    Eigen::Vector3f getAcceleration();
+    Eigen::Vector3f getFRD_RSpeed();
 
     Eigen::Quaternionf getFRU_Attitude();
     Eigen::Quaternionf getFRD_Attitude();

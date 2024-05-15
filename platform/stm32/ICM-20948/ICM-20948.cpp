@@ -1,12 +1,7 @@
 #include "Common.hpp"
 #include "Board.hpp"
 #include "InvenSense_ICM20948_registers.hpp"
-#include "SRT/SRT.hpp"
-#include "mavlink/common/mavlink.h"
 #include "ahrs/ahrs.hpp"
-#include "control/Control.hpp"
-#include "modes/Modes.hpp"
-
 
 using namespace InvenSense_ICM20948;
 
@@ -133,9 +128,9 @@ namespace ICM20948
         // Register                             | Set bits, Clear bits
         {Register::BANK_2::GYRO_SMPLRT_DIV, 4, 0},
         {Register::BANK_2::ACCEL_SMPLRT_DIV_2, 4, 0},
-        {Register::BANK_2::GYRO_CONFIG_1, GYRO_CONFIG_1_BIT::GYRO_FS_SEL_2000_DPS | GYRO_CONFIG_1_BIT::GYRO_DLPFCFG_120 | GYRO_CONFIG_1_BIT::GYRO_FCHOICE},
+        {Register::BANK_2::GYRO_CONFIG_1, GYRO_CONFIG_1_BIT::GYRO_FS_SEL_2000_DPS | GYRO_CONFIG_1_BIT::GYRO_DLPFCFG_36 | GYRO_CONFIG_1_BIT::GYRO_FCHOICE},
+        {Register::BANK_2::ACCEL_CONFIG, ACCEL_CONFIG_BIT::ACCEL_FS_SEL_16G | ACCEL_CONFIG_BIT::ACCEL_DLPFCFG_34 | ACCEL_CONFIG_BIT::ACCEL_FCHOICE},
         // {Register::BANK_2::GYRO_CONFIG_2, GYRO_CONFIG_2_BIT::XGYRO_CTEN | GYRO_CONFIG_2_BIT::YGYRO_CTEN | GYRO_CONFIG_2_BIT::ZGYRO_CTEN, 0},
-        {Register::BANK_2::ACCEL_CONFIG, ACCEL_CONFIG_BIT::ACCEL_FS_SEL_16G | ACCEL_CONFIG_BIT::ACCEL_DLPFCFG_111 | ACCEL_CONFIG_BIT::ACCEL_FCHOICE},
     };
 
     static constexpr register_bank3_config_t _register_bank3_cfg[] = {
@@ -162,26 +157,7 @@ namespace ICM20948
         FIFO_READ,
     } state{STATE::RESET};
 
-    void init()
-    {
-        RCC->APB1ENR1 |= RCC_APB1ENR1_TIM6EN;
-        __DMB();
-
-        TIM6->PSC = 1;
-        TIM6->ARR = 35590; // 224,77 Hz
-        TIM6->DIER |= TIM_DIER_UIE;
-        TIM6->CR1 |= TIM_CR1_CEN;
-
-        NVIC_DisableIRQ(TIM6_DAC_IRQn);
-        NVIC_SetPriority(TIM6_DAC_IRQn, 2);
-    }
-
-    void enable()
-    {
-    }
-
     Eigen::Vector3f gyro, accel;
-
     void isr()
     {
         DATA_seq data{};
@@ -205,19 +181,7 @@ namespace ICM20948
         gyro = data.vec.gyro.cast<float>() * GYROSCOPE_SENSITIVITY;
         accel = data.vec.accel.cast<float>() * ACCELEROMETER_SENSITIVITY;
 
-
         AHRS::updateByIMU(gyro, accel, 1 / 224.77);
-        FlightModeDispatcher::switchHandler();
-        FlightModeDispatcher::attitudeTickHandler();
-        Control::velocityHandler();
-        Control::rateHandler();
-        Control::updateMotorPower();
-    }
-
-    extern "C" void TIM6_DAC_IRQHandler(void)
-    {
-        TIM6->SR = ~TIM_SR_UIF;
-        isr();
     }
 
     void handler()
@@ -310,5 +274,4 @@ namespace ICM20948
             break;
         }
     }
-    REGISTER_SRT_MODULE(icm20948, init, enable, handler);
 }

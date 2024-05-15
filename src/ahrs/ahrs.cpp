@@ -53,6 +53,10 @@ namespace AHRS
     Eigen::Vector3f getRawAcceleration() { return rawAcceleration; }
 
     Eigen::Vector3f getRSpeed() { return rotateSpeed; }
+    Eigen::Vector3f getFRD_RSpeed()
+    {
+        return Eigen::Vector3f(rotateSpeed.x(), rotateSpeed.y(), -rotateSpeed.z());
+    }
     Eigen::Vector3f getAcceleration() { return acceleration; }
     float getG() { return G; }
 

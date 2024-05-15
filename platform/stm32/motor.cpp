@@ -6,10 +6,10 @@
 namespace Motor
 {
     static constexpr volatile uint32_t *assignTable[] = {
-        &TIM1->CCR4,
-        &TIM2->CCR2,
-        &TIM2->CCR1,
-        &TIM1->CCR3,
+        &TIM2->CCR2, // 2
+        &TIM1->CCR4, // 1
+        &TIM1->CCR3, // 4
+        &TIM2->CCR1, // 3
         &TIM16->CCR1,
         &TIM17->CCR1,
     };

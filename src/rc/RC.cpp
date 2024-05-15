@@ -5,7 +5,7 @@
 #include "SRT/SRT.hpp"
 #include "RC.hpp"
 // #include "I-Bus.hpp"
-// #include "S-Bus.hpp"
+#include "S-Bus.hpp"
 #include "CRSF.hpp"
 
 namespace RC
@@ -112,6 +112,9 @@ namespace RC
         for (unsigned i = channelCount; i < maxChannelCount; i++)
             _channels[i] = NAN;
 
+        // if ((millis() - _lastValidTimestamp) > signalLoseTimeout)
+        //     _state = State::signal_lose;
+
         if (not signalAvailable)
             _state = State::signal_lose;
         else
@@ -122,12 +125,12 @@ namespace RC
     static constexpr uint32_t protocolProbeTime = 100;
 
     // IBus ibusParser;
-    // SBus sBusParser;
+    SBus sBusParser;
     CRSF crsfParser;
     static constexpr RC_parser *parsers[] = {
         &crsfParser,
+        &sBusParser,
         // &ibusParser, // 20 40 DB 05 DC 05 54 05 DC 05 E8 03 D0 07 D2 05 E8 03 DC 05 DC 05 DC 05 DC 05 DC 05 DC 05 DA F3
-        // &sBusParser,
     };
 
     // void incomingByteHandler()
@@ -231,7 +234,7 @@ namespace RC
         case ProtocolDetector::SBUS:
             RC_UART.begin((100'000 >> 8),
                           UART::WordLen::nine, UART::StopBit::two, UART::ParityControl::odd,
-                          false, false, true);
+                          false, true, true);
             break;
         default:
             break;
@@ -240,8 +243,8 @@ namespace RC
 
     void handler()
     {
-        if (millis() - _lastValidTimestamp > signalLoseTimeout)
-            _state = State::signal_lose;
+        // if ((millis() - _lastValidTimestamp) > signalLoseTimeout)
+        //     _state = State::signal_lose;
     }
 
     void callBackHandler()

@@ -20,7 +20,7 @@ namespace Control
                 .max = 220,
             },
             .yaw = {
-                .P = 2.8,
+                .P = 4.5,
                 .I = 0,
                 .D = 0,
                 .maxICoef = 0,
@@ -29,22 +29,22 @@ namespace Control
     PIDSettings rateSettings = {
         .axis = {
             .roll = {
-                .P = 0.15,
-                .I = 0.2,
+                .P = 0.04,
+                .I = 0.0005,
                 .D = 0.003,
                 .maxICoef = 0.15,
                 .max = 1,
             },
             .pitch = {
-                .P = 0.15,
-                .I = 0.2,
+                .P = 0.04,
+                .I = 0.0005,
                 .D = 0.003,
                 .maxICoef = 0.15,
                 .max = 1,
             },
             .yaw = {
-                .P = 0.2,
-                .I = 0.1,
+                .P = 0.08,
+                .I = 0.001,
                 .D = 0,
                 .maxICoef = 0.30,
                 .max = 1,
