@@ -56,11 +56,12 @@ namespace AHRS
         {0, 100, 0},
         {0, 0, 10},
     };
-    Eigen::Vector3f Q{
-        0.1,
-        0.05,
-        0.5,
-    };
+    const Eigen::Matrix3f Q = Eigen::Matrix3f{
+                                  {0.25, 0.5, 0.5},
+                                  {0.5, 1., 1.},
+                                  {0.5, 1., 1.},
+                              } *
+                              (1.0f / 100);
     Eigen::Vector3f x{0, 0, 0};
 
     void predictKalman(const float dt)
@@ -74,24 +75,24 @@ namespace AHRS
 
         const Eigen::Matrix3f newP{
             {
-                Q(0) * dt + P(0, 0) + P(1, 0) * dt + (dt * dt * ((P(2, 2) * dt * dt) / 2 + P(1, 2) * dt + P(0, 2))) / 2 + (P(2, 0) * dt * dt) / 2 + dt * ((P(2, 1) * dt * dt) / 2 + P(1, 1) * dt + P(0, 1)),
+                P(0, 0) + P(1, 0) * dt + (dt * dt * ((P(2, 2) * dt * dt) / 2 + P(1, 2) * dt + P(0, 2))) / 2 + (P(2, 0) * dt * dt) / 2 + dt * ((P(2, 1) * dt * dt) / 2 + P(1, 1) * dt + P(0, 1)),
                 P(0, 1) + P(1, 1) * dt + (P(2, 1) * dt * dt) / 2 + dt * ((P(2, 2) * dt * dt) / 2 + P(1, 2) * dt + P(0, 2)),
                 (P(2, 2) * dt * dt) / 2 + P(1, 2) * dt + P(0, 2),
             },
 
             {
                 P(1, 0) + P(2, 0) * dt + dt * (P(1, 1) + P(2, 1) * dt) + (dt * dt * (P(1, 2) + P(2, 2) * dt)) / 2,
-                Q(1) * dt + P(1, 1) + P(2, 1) * dt + dt * (P(1, 2) + P(2, 2) * dt),
+                P(1, 1) + P(2, 1) * dt + dt * (P(1, 2) + P(2, 2) * dt),
                 P(1, 2) + P(2, 2) * dt,
             },
 
             {
                 (P(2, 2) * dt * dt) / 2 + P(2, 1) * dt + P(2, 0),
                 P(2, 1) + P(2, 2) * dt,
-                Q(2) * dt + P(2, 2),
+                P(2, 2),
             },
         };
-        P = newP;
+        P = newP + Q;
     }
 
     void correctPos(const float z,
@@ -200,7 +201,7 @@ namespace AHRS
             attitude = (current * accDeltaQ).normalized();
 
         update();
-        // correctAcc(linearAcceleration.z(), 0.5);
+        correctAcc(linearAcceleration.z(), 0.35);
         predictKalman(dT);
     }
 
@@ -211,7 +212,7 @@ namespace AHRS
     void updateByPressure(float P)
     {
         pressure = P;
-        correctPos(getAltitudeFromPressure(pressure, 101'325), 2);
+        correctPos(getAltitudeFromPressure(pressure, 101'325), 3.5);
     }
 
     void updateByTemperature(float T)

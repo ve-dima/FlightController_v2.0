@@ -16,12 +16,20 @@ namespace Control
         std::array<PIDf::Settings, 3> settings;
     } extern rateSettings, angleSettings;
 
+    enum class TrustMode
+    {
+        MANUAL,
+        VELOCITY,
+        ALTITUDE,
+    };
+    inline TrustMode trustMode = TrustMode::MANUAL;
+
     extern float minimalTrust;
     extern float yawWeight;
 
     void rateHandler();
-    void velocityHandler();
-    // void positionHandler();
+    void rotateVelocityHandler();
+    void linearVelocityHandler();
     void updateMotorPower();
 
     Eigen::Vector3f getTargetRate();

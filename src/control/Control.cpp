@@ -152,7 +152,7 @@ namespace Control
     }
 
     /// Второй каскад управления - P-контроллер наклонов
-    void velocityHandler()
+    void rotateVelocityHandler()
     {
         // return;
         Eigen::Vector3f target = targetRate;
@@ -201,5 +201,13 @@ namespace Control
         // only P-part, I- & D- disabled
 
         targetRate = target;
+    }
+
+    /// Третий каскад управления - PID-контроллер скорости
+    void linearVelocityHandler()
+    {
+        if(trustMode == TrustMode::MANUAL)
+            return;
+        
     }
 }

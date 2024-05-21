@@ -6,6 +6,7 @@
 #include "control/Control.hpp"
 #include "motor/motor.hpp"
 #include "rc/RC.hpp"
+#include "ahrs/atmosphere.hpp"
 
 extern Eigen::Vector3f dcm_z(const Eigen::Quaternionf &q);
 extern Eigen::Quaternionf from2vec(const Eigen::Vector3f &u, const Eigen::Vector3f &v);
@@ -60,15 +61,16 @@ namespace mavlink
 
             // const Eigen::Vector3f acc = AHRS::getRawAcceleration(),
             //                       gyr = AHRS::getRawRSpeed();
-            // const float pres = AHRS::getPressure();
+            const float pres = AHRS::getPressure();
+            const float heightByPressure = getAltitudeFromPressure(pres, 101'325) * 100 + 2'000;
             // mavlink_msg_highres_imu_send(MAVLINK_COMM_0, millis(),
             //                              acc.x(), acc.y(), acc.z(),
             //                              gyr.x(), gyr.y(), gyr.z(),
             //                              0, 0, 0,
-            //                              pres, 0, 0, 0, 0, 0);
+            //                              pres, heightByPressure, 0, 0, 0, 0);
 
             mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
-                                                AHRS::x(0) * 100 + 2'000, AHRS::x(1), AHRS::x(2),
+                                                AHRS::x(0) * 100 + 2'000, AHRS::x(1), heightByPressure,
                                                 AHRS::P(0, 0), AHRS::P(1, 1), AHRS::P(2, 2));
         }
 

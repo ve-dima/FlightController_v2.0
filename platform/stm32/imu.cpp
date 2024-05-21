@@ -51,7 +51,7 @@ namespace IMU
         // eigen -O3 12223
         FlightModeDispatcher::switchHandler();
         FlightModeDispatcher::attitudeTickHandler();
-        Control::velocityHandler();
+        Control::rotateVelocityHandler();
         Control::rateHandler();
         Control::updateMotorPower();
     }
