@@ -2,20 +2,18 @@ cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(CMAKE_SYSTEM_NAME Generic)
-# find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
 set(CXX_CF 
         -Og
+        # -O3
         -g -gdwarf-2
         -Wall
         -Werror
 )
-
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-
 project (mavlink)
 add_library(mavlink INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lib/mavlink)
 target_include_directories(mavlink INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lib/mavlink)
@@ -36,6 +34,7 @@ file(GLOB_RECURSE SOURCES
         "lib/Algo/*"
         "lib/ArduinoAPI/*"
         "lib/SRT/*.cpp"
+        # "lib/Math"
         "platform/stm32/*.cpp"
 )
 
@@ -98,27 +97,27 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
 )
 
 # For pc
-file(GLOB_RECURSE SOURCES
-        "src/*"
-        "platform/pc/*.cpp"
-)
-set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/platform/pc/sections.ld)
+# file(GLOB_RECURSE SOURCES
+#         "src/*"
+#         "platform/pc/*.cpp"
+# )
+# set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/platform/pc/sections.ld)
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${LINKER_SCRIPT})
+# add_executable(${PROJECT_NAME} ${SOURCES} ${LINKER_SCRIPT})
 
-set_target_properties(${PROJECT_NAME} PROPERTIES CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -T ${LINKER_SCRIPT}") 
-target_compile_options(${PROJECT_NAME}
-        PUBLIC
-        ${CXX_CF}
-)
-target_include_directories(${PROJECT_NAME}
-        PUBLIC
-                "include"
-                "src/*"
-                "platform/pc"
-)
-target_link_options(${PROJECT_NAME} PUBLIC -Wl,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map)
-target_link_libraries (${PROJECT_NAME} Eigen3::Eigen)
+# set_target_properties(${PROJECT_NAME} PROPERTIES CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -T ${LINKER_SCRIPT}") 
+# target_compile_options(${PROJECT_NAME}
+#         PUBLIC
+#         ${CXX_CF}
+# )
+# target_include_directories(${PROJECT_NAME}
+#         PUBLIC
+#                 "include"
+#                 "src/*"
+#                 "platform/pc"
+# )
+# target_link_options(${PROJECT_NAME} PUBLIC -Wl,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map)
+# target_link_libraries (${PROJECT_NAME} Eigen3::Eigen)
 
 # enable_testing()
 # add_subdirectory(test)

@@ -178,8 +178,8 @@ namespace ICM20948
         std::swap(data.vec.accel.x(), data.vec.accel.y());
         std::swap(data.vec.gyro.x(), data.vec.gyro.y());
 
-        gyro = data.vec.gyro.cast<float>() * GYROSCOPE_SENSITIVITY;
-        accel = data.vec.accel.cast<float>() * ACCELEROMETER_SENSITIVITY;
+        gyro = Eigen::Vector3f(data.vec.gyro.cast<float>()) * GYROSCOPE_SENSITIVITY;
+        accel = Eigen::Vector3f(data.vec.accel.cast<float>()) * ACCELEROMETER_SENSITIVITY;
 
         AHRS::updateByIMU(gyro, accel, 1 / 224.77);
     }

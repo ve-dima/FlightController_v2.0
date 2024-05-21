@@ -1,6 +1,4 @@
 #include "Control.hpp"
-#include <Eigen/Core>
-#include <Eigen/Geometry>
 #include "ahrs/ahrs.hpp"
 #include "motor/motor.hpp"
 #include "stm32g4xx.h"
@@ -12,9 +10,9 @@ Eigen::Vector3f dcm_z(const Eigen::Quaternionf &q)
     const float b = q.x();
     const float c = q.y();
     const float d = q.z();
-    R_z(0) = 2 * (a * c + b * d);
-    R_z(1) = 2 * (c * d - a * b);
-    R_z(2) = a * a - b * b - c * c + d * d;
+    R_z[0] = 2 * (a * c + b * d);
+    R_z[1] = 2 * (c * d - a * b);
+    R_z[2] = a * a - b * b - c * c + d * d;
     return R_z;
 }
 
@@ -194,7 +192,7 @@ namespace Control
         // quaternion attitude control law, qe is rotation from q to qd
 
         Eigen::Vector3f angleError = (attitude.conjugate() * qd).vec();
-        angleError *= 2;
+        angleError *= 2.f;
         if (attitude.w() < 0)
             angleError = -angleError;
 

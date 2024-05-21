@@ -1,7 +1,6 @@
 #pragma once
 #include <array>
 #include <PID.hpp>
-#include <Eigen/Core>
 #include <Eigen/Geometry>
 
 namespace Control

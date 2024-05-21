@@ -8,7 +8,7 @@ namespace AHRS
     PARAM_ADD(param::FLOAT, CAL_GYRO_YOFF, &gyroscopeOffset[1]);
     PARAM_ADD(param::FLOAT, CAL_GYRO_ZOFF, &gyroscopeOffset[2]);
 
-    float accelerometerOffset[] = {0, 0, 0};
+    float accelerometerOffset[] = {0, 0, 0.02};
     PARAM_ADD(param::FLOAT, CAL_ACC_XOFF, &accelerometerOffset[0]);
     PARAM_ADD(param::FLOAT, CAL_ACC_YOFF, &accelerometerOffset[1]);
     PARAM_ADD(param::FLOAT, CAL_ACC_ZOFF, &accelerometerOffset[2]);

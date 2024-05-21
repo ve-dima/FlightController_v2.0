@@ -160,8 +160,8 @@ namespace BMP280
         WAIT_FOR_RESET,
         READ_CALIBRATION,
         IDLE,
-        MEASURE,
         COLLECT,
+        MEASURE,
     } state = State::RESET;
 
     static constexpr uint8_t measureConfig = BMP280_CTRL_P16 | BMP280_CTRL_T2;
@@ -224,14 +224,6 @@ namespace BMP280
 
             delayTime = 0;
             state = State::MEASURE;
-
-            [[fallthrough]];
-        }
-        case State::MEASURE:
-        {
-            writeRegister(measureConfig | BMP280_CTRL_MODE_FORCE, BMP280_ADDR_CTRL);
-            delayTime = measureInterval;
-            state = State::COLLECT;
             break;
         }
         case State::COLLECT:
@@ -260,6 +252,14 @@ namespace BMP280
 
             state = State::MEASURE;
             delayTime = 0;
+
+            [[fallthrough]];
+        }
+        case State::MEASURE:
+        {
+            writeRegister(measureConfig | BMP280_CTRL_MODE_FORCE, BMP280_ADDR_CTRL);
+            delayTime = measureInterval;
+            state = State::COLLECT;
             break;
         }
         default:

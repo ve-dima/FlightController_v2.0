@@ -4,6 +4,8 @@
 #include "modes/Modes.hpp"
 #include "control/Control.hpp"
 #include "SRT/SRT.hpp"
+#include "Common.hpp"
+#include <algorithm>
 
 namespace IMU
 {
@@ -33,8 +35,20 @@ namespace IMU
     extern "C" void TIM6_DAC_IRQHandler(void)
     {
         TIM6->SR = ~TIM_SR_UIF;
+
+        static uint32_t maxClk = 0;
+        uint32_t startTime = tick();
         ICM20948::isr();
         BMP280::handler();
+        maxClk = std::max(maxClk, tick() - startTime);
+        // 11340 - empty -Og
+        // 10271 - empty -O3
+
+        // 14583 - my lib -Og
+        // . - my lib -O3
+
+        // eigen -Og 17023
+        // eigen -O3 12223
         FlightModeDispatcher::switchHandler();
         FlightModeDispatcher::attitudeTickHandler();
         Control::velocityHandler();

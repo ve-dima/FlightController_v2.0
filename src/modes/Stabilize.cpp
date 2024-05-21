@@ -70,13 +70,10 @@ void Stabilize::attitudeTickHandler()
     float tiltAngle = targetTilt.norm();
     if (tiltAngle > manualMaxTilt)
         tiltAngle = manualMaxTilt;
-    if (tiltAngle > 1e-4)
-    {
-        targetTilt /= tiltAngle;
-        qRPSP = Eigen::Quaternionf(Eigen::AngleAxisf(tiltAngle, targetTilt));
-    }
-    else
-        qRPSP = Eigen::Quaternionf::Identity();
+    // if (tiltAngle > 1e-4)
+    //     qRPSP = Eigen::Quaternionf::fromAxisAngle(targetTilt);
+    // else
+    //     qRPSP = Eigen::Quaternionf::Identity();
 
     const Eigen::Quaternionf setPoint = qYawSP * qRPSP;
     Control::setTargetAttitude(setPoint);

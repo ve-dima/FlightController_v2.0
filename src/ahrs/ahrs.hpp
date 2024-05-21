@@ -1,5 +1,4 @@
 #pragma once
-#include <Eigen/Core>
 #include <Eigen/Geometry>
 
 namespace AHRS
@@ -22,6 +21,9 @@ namespace AHRS
     Eigen::Vector3f getRawAcceleration();
     float getG();
 
+    float getPressure();
+    float getTemperature();
+
     Eigen::Vector3f getRSpeed();
     Eigen::Vector3f getFRD_RSpeed();
 
@@ -33,4 +35,7 @@ namespace AHRS
     Eigen::Vector3f getLinearAcceleration();
 
     inline float lastDT = 0;
+    
+    extern Eigen::Vector3f x;
+    extern Eigen::Matrix3f P;
 }

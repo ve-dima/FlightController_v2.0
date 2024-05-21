@@ -127,13 +127,13 @@ void loop()
     // for (static uint32_t tim = 0; millis() - tim > 50; tim = millis())
     // {
     //     const auto attitude = AHRS::getFRD_Attitude();
-    //     debugUart.print(attitude.w(), 4);
+    //     debugUart.print(attitude.w, 4);
     //     debugUart.print(',');
-    //     debugUart.print(attitude.x(), 4);
+    //     debugUart.print(attitude.x, 4);
     //     debugUart.print(',');
-    //     debugUart.print(attitude.y(), 4);
+    //     debugUart.print(attitude.y, 4);
     //     debugUart.print(',');
-    //     debugUart.print(attitude.z(), 4);
+    //     debugUart.print(attitude.z, 4);
     //     debugUart.println();
     //     // debugUart.println(millis());
     // }
