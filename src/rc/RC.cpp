@@ -212,8 +212,8 @@ namespace RC
         _channelsAssign[static_cast<int>(ChannelFunction::ARMSWITCH)] = 5;
         _channelsAssign[static_cast<int>(ChannelFunction::AUX_1)] = 6;
         _channelsAssign[static_cast<int>(ChannelFunction::AUX_2)] = 7;
-        _channelsAssign[static_cast<int>(ChannelFunction::KILLSWITCH)] = 8;
-        _channelsAssign[static_cast<int>(ChannelFunction::FLTBTN_SLOT_1)] = 9;
+        _channelsAssign[static_cast<int>(ChannelFunction::FLTBTN_SLOT_1)] = 8;
+        _channelsAssign[static_cast<int>(ChannelFunction::FLTBTN_SLOT_2)] = 9;
         _channelsAssign[static_cast<int>(ChannelFunction::PARAM_1)] = 10;
     }
 

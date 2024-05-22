@@ -1,29 +1,8 @@
 #include "Control.hpp"
 #include "ahrs/ahrs.hpp"
+#include "math/math.hpp"
 #include "motor/motor.hpp"
 #include "stm32g4xx.h"
-
-Eigen::Vector3f dcm_z(const Eigen::Quaternionf &q)
-{
-    Eigen::Vector3f R_z;
-    const float a = q.w();
-    const float b = q.x();
-    const float c = q.y();
-    const float d = q.z();
-    R_z[0] = 2 * (a * c + b * d);
-    R_z[1] = 2 * (c * d - a * b);
-    R_z[2] = a * a - b * b - c * c + d * d;
-    return R_z;
-}
-
-Eigen::Quaternionf from2vec(const Eigen::Vector3f &u, const Eigen::Vector3f &v)
-{
-    Eigen::Quaternionf q;
-    q.w() = u.dot(v) + std::sqrt(u.squaredNorm() * v.squaredNorm());
-    q.vec() = u.cross(v);
-    q.normalize();
-    return q;
-}
 
 namespace Control
 {

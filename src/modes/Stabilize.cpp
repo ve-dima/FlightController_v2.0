@@ -6,9 +6,11 @@
 #include "ahrs/ahrs.hpp"
 #include "rc/RC.hpp"
 #include "param/param.hpp"
+#include "math/math.hpp"
 
 float manualMaxTilt = 30 * (M_PI / 180);
 float manualYawRate = 150 * (M_PI / 180);
+float acroRate = 600 * (M_PI / 180);
 
 Stabilize stabilizeMode;
 
@@ -31,6 +33,7 @@ void Stabilize::onEnter()
     Control::setTargetAttitude(Eigen::Quaternionf::Identity());
 
     manualYawSetPoint = AHRS::getEulerFRD().yaw;
+    homeYaw = Eigen::Quaternionf{std::cos(manualYawSetPoint / 2.f), 0.f, 0.f, std::sin(manualYawSetPoint / 2.f)};
 
     LED::setLED(LED::Color::green, LED::Action::double_short_blink);
     Motor::arm();
@@ -46,23 +49,16 @@ float constrainAngle(float x)
 
 void Stabilize::attitudeTickHandler()
 {
-    // const float yaw = AHRS::getEulerFRD().yaw;
-
-    if (RC::channel(RC::ChannelFunction::THROTTLE) < -0.9)
-    {
-        // manualYawSetPoint = yaw;
-        Control::setTargetThrust(0);
-    }
+    if (RC::channel(RC::ChannelFunction::AUX_1) < -0.9)
+        levelMode();
+    else if (RC::channel(RC::ChannelFunction::AUX_1) > 0.9)
+        levelMode();
     else
-    {
-        Control::setTargetThrust((RC::channel(RC::ChannelFunction::THROTTLE) + 1) / 2);
+        levelMode();
+}
 
-        if (not RC::inDZ(RC::ChannelFunction::YAW))
-            manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate,
-                manualYawSetPoint = constrainAngle(manualYawSetPoint);
-    }
-    const Eigen::Quaternionf qYawSP(std::cos(manualYawSetPoint / 2.f), 0.f, 0.f, std::sin(manualYawSetPoint / 2.f));
-
+Eigen::Quaternionf Stabilize::getSPFromRC()
+{
     Eigen::Quaternionf qRPSP;
     Eigen::Vector3f targetTilt{
         RC::channel(RC::ChannelFunction::ROLL) * manualMaxTilt,
@@ -70,13 +66,79 @@ void Stabilize::attitudeTickHandler()
     float tiltAngle = targetTilt.norm();
     if (tiltAngle > manualMaxTilt)
         tiltAngle = manualMaxTilt;
-    // if (tiltAngle > 1e-4)
-    //     qRPSP = Eigen::Quaternionf::fromAxisAngle(targetTilt);
-    // else
-    //     qRPSP = Eigen::Quaternionf::Identity();
+    if (tiltAngle > 1e-4)
+    {
+        targetTilt /= tiltAngle;
+        qRPSP = Eigen::Quaternionf(Eigen::AngleAxisf(tiltAngle, targetTilt));
+    }
+    else
+        qRPSP = Eigen::Quaternionf::Identity();
 
-    const Eigen::Quaternionf setPoint = qYawSP * qRPSP;
-    Control::setTargetAttitude(setPoint);
+    if (not RC::inDZ(RC::ChannelFunction::YAW) and RC::channel(RC::ChannelFunction::THROTTLE) > -0.9)
+        manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate,
+            manualYawSetPoint = constrainAngle(manualYawSetPoint);
+
+    Eigen::Quaternionf qYawSP(std::cos(manualYawSetPoint / 2.f), 0.f, 0.f, std::sin(manualYawSetPoint / 2.f));
+    if (RC::channel(RC::ChannelFunction::FLTBTN_SLOT_1) > 0)
+    {
+        const Eigen::Quaternionf q_att = AHRS::getFRU_Attitude();
+        const Eigen::Vector3f att_z = dcm_z(AHRS::getFRU_Attitude());
+        const Eigen::Quaternionf q_tilt = from2vec(Eigen::Vector3f{0, 0, 1}, att_z);
+        const Eigen::Quaternionf q_yaw = q_tilt.inverse() * q_att; // This is not euler yaw
+        qRPSP = qRPSP * (q_yaw * homeYaw.conjugate());
+    }
+
+    return qYawSP * qRPSP;
+}
+
+float Stabilize::getThrottleFromRC()
+{
+    const float tht = expo(RC::channel(RC::ChannelFunction::THROTTLE), 0.5);
+    return (tht + 1) / 2;
+}
+
+void Stabilize::levelMode()
+{
+    if (RC::channel(RC::ChannelFunction::THROTTLE) < -0.9)
+        Control::setTargetThrust(0);
+    else
+    {
+        Control::setTargetThrust(getThrottleFromRC());
+
+        if (not RC::inDZ(RC::ChannelFunction::YAW))
+            manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate,
+                manualYawSetPoint = constrainAngle(manualYawSetPoint);
+    }
+
+    Control::setTargetAttitude(getSPFromRC());
+    Control::trustMode = Control::TrustMode::MANUAL;
+    Control::setTargetThrust(getThrottleFromRC());
+}
+
+void Stabilize::acroMode()
+{
+    Eigen::Vector3f rotateVec{
+        RC::channel(RC::ChannelFunction::ROLL),
+        RC::channel(RC::ChannelFunction::PITCH),
+        RC::channel(RC::ChannelFunction::YAW),
+    };
+
+    if (RC::inDZ(RC::ChannelFunction::ROLL))
+        rotateVec.x() = 0;
+    if (RC::inDZ(RC::ChannelFunction::PITCH))
+        rotateVec.y() = 0;
+    if (RC::inDZ(RC::ChannelFunction::YAW))
+        rotateVec.z() = 0;
+
+    for (float val : rotateVec)
+        val = expo(val, 0.7) * acroRate;
+
+    Eigen::Quaternionf deltaQ = omega(AHRS::getFRD_Attitude(), rotateVec);
+    acroSP.coeffs() += deltaQ.coeffs() * AHRS::lastDT;
+
+    Control::setTargetAttitude(acroSP);
+    Control::trustMode = Control::TrustMode::MANUAL;
+    Control::setTargetThrust(getThrottleFromRC());
 }
 
 PARAM_ADD(param::FLOAT, MPC_MAN_TILT_MAX, &manualMaxTilt);

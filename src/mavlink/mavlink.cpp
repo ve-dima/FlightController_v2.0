@@ -26,15 +26,15 @@ namespace mavlink
         {
             // auto attitude = AHRS::getFRD_Attitude();
             // const AHRS::Eulerf eulerAttitude = AHRS::getEulerFRD();
-            // const auto rotateRate = AHRS::getRSpeed();
+            const auto rotateRate = AHRS::getRSpeed();
             // const auto targetRate = Control::getTargetRate();
-            // const auto targetAttitude = Control::getTargetAttitude();
+            const auto targetAttitude = Control::getTargetAttitude();
             // const auto targetThrust = Control::getTargetThrust();
             // const float mavTAtt[4] = {targetAttitude.w(), targetAttitude.x(), targetAttitude.y(), targetAttitude.z()};
 
-            // mavlink_msg_attitude_quaternion_send(MAVLINK_COMM_0, millis(),
-            //                                      attitude.w(), attitude.x(), attitude.y(), attitude.z(),
-            //                                      rotateRate.x(), rotateRate.y(), -rotateRate.z(), nullptr);
+            mavlink_msg_attitude_quaternion_send(MAVLINK_COMM_0, millis(),
+                                                 targetAttitude.w(), targetAttitude.x(), targetAttitude.y(), targetAttitude.z(),
+                                                 rotateRate.x(), rotateRate.y(), -rotateRate.z(), nullptr);
 
             // mavlink_msg_attitude_send(MAVLINK_COMM_0, millis(),
             //                           eulerAttitude.roll, eulerAttitude.pitch, eulerAttitude.yaw,
@@ -61,17 +61,17 @@ namespace mavlink
 
             // const Eigen::Vector3f acc = AHRS::getRawAcceleration(),
             //                       gyr = AHRS::getRawRSpeed();
-            const float pres = AHRS::getPressure();
-            const float heightByPressure = getAltitudeFromPressure(pres, 101'325) * 100 + 2'000;
+            // const float pres = AHRS::getPressure();
+            // const float heightByPressure = getAltitudeFromPressure(pres, 101'325) * 100 + 2'000;
             // mavlink_msg_highres_imu_send(MAVLINK_COMM_0, millis(),
             //                              acc.x(), acc.y(), acc.z(),
             //                              gyr.x(), gyr.y(), gyr.z(),
             //                              0, 0, 0,
             //                              pres, heightByPressure, 0, 0, 0, 0);
 
-            mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
-                                                AHRS::x(0) * 100 + 2'000, AHRS::x(1), heightByPressure,
-                                                AHRS::P(0, 0), AHRS::P(1, 1), AHRS::P(2, 2));
+            // mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
+            //                                     AHRS::x(0) * 100 + 2'000, AHRS::x(1), heightByPressure,
+            //                                     AHRS::P(0, 0), AHRS::P(1, 1), AHRS::P(2, 2));
         }
 
         // for (static uint32_t timer = 0; millis() - timer > 100; timer = millis())
