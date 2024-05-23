@@ -61,8 +61,8 @@ namespace mavlink
 
             // const Eigen::Vector3f acc = AHRS::getRawAcceleration(),
             //                       gyr = AHRS::getRawRSpeed();
-            // const float pres = AHRS::getPressure();
-            // const float heightByPressure = getAltitudeFromPressure(pres, 101'325) * 100 + 2'000;
+            const float pres = AHRS::getPressure();
+            const float heightByPressure = getAltitudeFromPressure(pres, 101'325);
             // mavlink_msg_highres_imu_send(MAVLINK_COMM_0, millis(),
             //                              acc.x(), acc.y(), acc.z(),
             //                              gyr.x(), gyr.y(), gyr.z(),
@@ -72,6 +72,10 @@ namespace mavlink
             // mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
             //                                     AHRS::x(0) * 100 + 2'000, AHRS::x(1), heightByPressure,
             //                                     AHRS::P(0, 0), AHRS::P(1, 1), AHRS::P(2, 2));
+
+            mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
+                                                AHRS::x(0), AHRS::x(1), heightByPressure,
+                                                NAN, NAN, NAN);
         }
 
         // for (static uint32_t timer = 0; millis() - timer > 100; timer = millis())

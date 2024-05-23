@@ -5,6 +5,9 @@
 #include "Common.hpp"
 #include <algorithm>
 
+float pressureAltGain = 0.1;
+float pressureVelGain = 0.02;
+
 Eigen::Quaternionf adaptiveSLERP_I(Eigen::Quaternionf q, float gain, const float threshold = 0.97)
 {
     // optimize LERP and SLERP with qI(1,0,0,0)======================
@@ -42,7 +45,11 @@ namespace AHRS
 
     extern float accelerationFilterGain;
     extern float accelerationRejection;
-    extern float accelerationRejectionAngle;
+    // extern float accelerationRejectionAngle;
+
+    extern float accelerometerNoise;
+    extern float barometerNoise;
+    extern int32_t mulka;
 
     Eigen::Vector3f rawRSpeed, rotateSpeed;
     Eigen::Vector3f rawAcceleration, acceleration;
@@ -52,17 +59,19 @@ namespace AHRS
     float pressure, temperature;
     Eigen::Vector3f linearAcceleration;
 
+    // float pressureDTAcc = 0;
+    // float lastPressureAlt = 0;
+
     Eigen::Matrix3f P{
         {100, 0, 0},
         {0, 100, 0},
         {0, 0, 10},
     };
     const Eigen::Matrix3f Q = Eigen::Matrix3f{
-                                  {0.25, 0.5, 0.5},
-                                  {0.5, 1., 1.},
-                                  {0.5, 1., 1.},
-                              } *
-                              (1.0f / 100);
+        {0.25, 0.5, 0.5},
+        {0.5, 1., 1.},
+        {0.5, 1., 1},
+    };
     Eigen::Vector3f x{0, 0, 0};
 
     void predictKalman(const float dt)
@@ -73,6 +82,7 @@ namespace AHRS
             x[2],
         };
         x = newX;
+        // pressureDTAcc += dt;
 
         const Eigen::Matrix3f newP{
             {
@@ -93,7 +103,7 @@ namespace AHRS
                 P(2, 2),
             },
         };
-        P = newP + Q;
+        P = newP + (Q * (1.f / mulka));
     }
 
     void correctPos(const float z,
@@ -115,6 +125,12 @@ namespace AHRS
             {P(2, 0) - P(0, 0) * P(2, 0) * inv_sk, P(2, 1) - P(0, 1) * P(2, 0) * inv_sk, P(2, 2) - P(0, 2) * P(2, 0) * inv_sk},
         };
         P = newP;
+        // const float vel = (lastPressureAlt - z) / pressureDTAcc;
+        // pressureDTAcc = 0;
+        // lastPressureAlt = z;
+
+        // x[0] = (1 - pressureAltGain) * x[0] + pressureAltGain * z;
+        // x[1] = (1 - pressureVelGain) * x[1] + pressureVelGain * vel;
     }
 
     void correctAcc(const float z,
@@ -136,6 +152,8 @@ namespace AHRS
             {-P(2, 0) * (P(2, 2) * inv_sk - 1), -P(2, 1) * (P(2, 2) * inv_sk - 1), -P(2, 2) * (P(2, 2) * inv_sk - 1)},
         };
         P = newP;
+
+        // x[2] = z;
     }
 
     void update()
@@ -196,7 +214,8 @@ namespace AHRS
             attitude = (current * accDeltaQ).normalized();
 
         update();
-        correctAcc(linearAcceleration.z(), 0.35);
+        correctAcc(linearAcceleration.z(),
+                   accelerometerNoise * accelerometerNoise);
         predictKalman(dT);
     }
 
@@ -207,7 +226,8 @@ namespace AHRS
     void updateByPressure(float P)
     {
         pressure = P;
-        correctPos(getAltitudeFromPressure(pressure, 101'325), 3.5);
+        correctPos(getAltitudeFromPressure(pressure, 101'325),
+                   barometerNoise * barometerNoise);
     }
 
     void updateByTemperature(float T)

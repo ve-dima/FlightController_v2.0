@@ -14,11 +14,20 @@ namespace AHRS
     PARAM_ADD(param::FLOAT, CAL_ACC_ZOFF, &accelerometerOffset[2]);
 
     float accelerationFilterGain = 0.01;
-    PARAM_ADD(param::FLOAT, IMU_ACC_GAIN, &accelerationFilterGain);
+    PARAM_ADD(param::FLOAT, AHRS__ACC_GAIN, &accelerationFilterGain);
 
     float accelerationRejection = 0.5;
-    PARAM_ADD(param::FLOAT, IMU_ACC_RJT, &accelerationRejection);
+    PARAM_ADD(param::FLOAT, AHRS_ACC_RJT, &accelerationRejection);
 
-    float accelerationRejectionAngle;
-    PARAM_ADD(param::FLOAT, IMU_ACC_RJT_ANG, &accelerationRejectionAngle);
+    // float accelerationRejectionAngle;
+    // PARAM_ADD(param::FLOAT, IMU_ACC_RJT_ANG, &accelerationRejectionAngle);
+
+    float accelerometerNoise = 0.35;
+    PARAM_ADD(param::FLOAT, AHRS_ACC_NOISE, &accelerometerNoise);
+
+    float barometerNoise = 2;
+    PARAM_ADD(param::FLOAT, AHRS_BARO_NOISE, &barometerNoise);
+
+    int32_t mulka = 1'000;
+    PARAM_ADD(param::INT32, AHRS_EKF_Q, &mulka);
 }

@@ -53,9 +53,6 @@ bool param::updateParamByPtr(void *value, const param_t *param)
         return false;
 
     static constexpr unsigned valuesSize[] = {
-        1, // UINT8
-        1, // INT8
-        4, // UINT32
         4, // INT32
         4, // FLOAT
     };

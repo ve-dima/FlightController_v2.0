@@ -164,7 +164,7 @@ namespace BMP280
         MEASURE,
     } state = State::RESET;
 
-    static constexpr uint8_t measureConfig = BMP280_CTRL_P16 | BMP280_CTRL_T2;
+    static constexpr uint8_t measureConfig = BMP280_CTRL_P2 | BMP280_CTRL_T2;
     static constexpr uint32_t measureInterval = (BMP280_MT_INIT + BMP280_MT * (16 - 1 + 2 - 1)) / 1'000 + 3;
 
     void handler()

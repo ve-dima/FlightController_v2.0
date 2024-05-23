@@ -18,18 +18,6 @@ void paramToMavParam(param::paramVarId_t &param, mavlink_param_value_t &mP)
 
     switch (param.ptr->type)
     {
-    // case param::UINT8:
-    //     mavParam.value.param_uint8 = *static_cast<const uint8_t *>(param.ptr->address);
-    //     mavParam.param.param_type = MAV_PARAM_TYPE_UINT8;
-    //     break;
-    // case param::INT8:
-    //     mavParam.value.param_int8 = *static_cast<const int8_t *>(param.ptr->address);
-    //     mavParam.param.param_type = MAV_PARAM_TYPE_INT8;
-    //     break;
-    // case param::UINT32:
-    //     mavParam.value.param_uint32 = *static_cast<const uint32_t *>(param.ptr->address);
-    //     mavParam.param.param_type = MAV_PARAM_TYPE_UINT32;
-    //     break;
     case param::INT32:
         mavParam.value.param_int32 = *static_cast<const int32_t *>(param.ptr->address);
         mavParam.param.param_type = MAV_PARAM_TYPE_INT32;
@@ -110,7 +98,25 @@ void loop()
         }
         case MAVLINK_MSG_ID_PARAM_SET:
         {
-            // TODO: param set
+            mavlink_param_set_t setReq;
+            mavlink_msg_param_set_decode(&msg, &setReq);
+            if (setReq.target_component != mavlink_system.compid or
+                setReq.target_system != mavlink_system.sysid)
+                break;
+
+            if (setReq.param_type != MAV_PARAM_TYPE_INT32 and
+                setReq.param_type != MAV_PARAM_TYPE_REAL32)
+                break;
+
+            param::paramVarId_t p;
+            if (not param::getParamByName(setReq.param_id, p))
+                break;
+            param::updateParamByPtr(&setReq.param_value, p.ptr);
+
+            mavlink_param_value_t mavParam;
+            paramToMavParam(p, mavParam);
+
+            mavlink_msg_param_value_send_struct(MAVLINK_COMM_0, &mavParam);
             break;
         }
         case MAVLINK_MSG_ID_PING:

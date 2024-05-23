@@ -79,16 +79,11 @@ Eigen::Quaternionf Stabilize::getSPFromRC()
             manualYawSetPoint = constrainAngle(manualYawSetPoint);
 
     Eigen::Quaternionf qYawSP(std::cos(manualYawSetPoint / 2.f), 0.f, 0.f, std::sin(manualYawSetPoint / 2.f));
-    if (RC::channel(RC::ChannelFunction::FLTBTN_SLOT_1) > 0)
-    {
-        const Eigen::Quaternionf q_att = AHRS::getFRU_Attitude();
-        const Eigen::Vector3f att_z = dcm_z(AHRS::getFRU_Attitude());
-        const Eigen::Quaternionf q_tilt = from2vec(Eigen::Vector3f{0, 0, 1}, att_z);
-        const Eigen::Quaternionf q_yaw = q_tilt.inverse() * q_att; // This is not euler yaw
-        qRPSP = qRPSP * (q_yaw * homeYaw.conjugate());
-    }
 
-    return qYawSP * qRPSP;
+    if (RC::channel(RC::ChannelFunction::FLTBTN_SLOT_1) > 0)
+        return qRPSP * qYawSP;
+    else
+        return qYawSP * qRPSP;
 }
 
 float Stabilize::getThrottleFromRC()
