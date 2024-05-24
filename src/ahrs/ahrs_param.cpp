@@ -8,13 +8,13 @@ namespace AHRS
     PARAM_ADD(param::FLOAT, CAL_GYRO_YOFF, &gyroscopeOffset[1]);
     PARAM_ADD(param::FLOAT, CAL_GYRO_ZOFF, &gyroscopeOffset[2]);
 
-    float accelerometerOffset[] = {0, 0, 0.02};
+    float accelerometerOffset[] = {-0.01, -0.01, 0.02};
     PARAM_ADD(param::FLOAT, CAL_ACC_XOFF, &accelerometerOffset[0]);
     PARAM_ADD(param::FLOAT, CAL_ACC_YOFF, &accelerometerOffset[1]);
     PARAM_ADD(param::FLOAT, CAL_ACC_ZOFF, &accelerometerOffset[2]);
 
     float accelerationFilterGain = 0.01;
-    PARAM_ADD(param::FLOAT, AHRS__ACC_GAIN, &accelerationFilterGain);
+    PARAM_ADD(param::FLOAT, AHRS_ACC_GAIN, &accelerationFilterGain);
 
     float accelerationRejection = 0.5;
     PARAM_ADD(param::FLOAT, AHRS_ACC_RJT, &accelerationRejection);
@@ -22,12 +22,34 @@ namespace AHRS
     // float accelerationRejectionAngle;
     // PARAM_ADD(param::FLOAT, IMU_ACC_RJT_ANG, &accelerationRejectionAngle);
 
-    float accelerometerNoise = 0.35;
+    float accelerometerNoise = 0.37;
     PARAM_ADD(param::FLOAT, AHRS_ACC_NOISE, &accelerometerNoise);
 
     float barometerNoise = 2;
     PARAM_ADD(param::FLOAT, AHRS_BARO_NOISE, &barometerNoise);
 
-    int32_t mulka = 1'000;
-    PARAM_ADD(param::INT32, AHRS_EKF_Q, &mulka);
+    float mulka = 3;
+    PARAM_ADD(param::FLOAT, AHRS_EKF_Q, &mulka);
+
+    float pressureAltGain = 0.05;
+    PARAM_ADD(param::FLOAT, AHRS_ALT_GAIN, &pressureAltGain);
+
+    float pressureVelGain = 0.025;
+    PARAM_ADD(param::FLOAT, AHRS_VEL_GAIN, &pressureVelGain);
+
+    Eigen::Matrix3f Q{
+        {0, 0, 0},
+        {0, 0.0001, 0},
+        {0, 0, 0.5},
+    };
+    float q1 = 0, q2 = 0, q3 = 1;
+    void s()
+    {
+        Q(0, 0) = q1;
+        Q(1, 1) = q2;
+        Q(2, 2) = q3;
+    }
+    PARAM_ADD_WITH_CALLBACK(param::FLOAT, AHRS_POS_Q, &q1, s);
+    PARAM_ADD_WITH_CALLBACK(param::FLOAT, AHRS_SPD_Q, &q2, s);
+    PARAM_ADD_WITH_CALLBACK(param::FLOAT, AHRS_ACC_Q, &q3, s);
 }

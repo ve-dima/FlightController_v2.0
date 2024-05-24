@@ -130,6 +130,7 @@ void Stabilize::acroMode()
 
     Eigen::Quaternionf deltaQ = omega(AHRS::getFRD_Attitude(), rotateVec);
     acroSP.coeffs() += deltaQ.coeffs() * AHRS::lastDT;
+    acroSP.normalize();
 
     Control::setTargetAttitude(acroSP);
     Control::trustMode = Control::TrustMode::MANUAL;

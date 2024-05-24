@@ -8,7 +8,7 @@ set(CMAKE_C_STANDARD 11)
 
 set(CXX_CF 
         -Og
-        # -O3
+        # -O2
         -g -gdwarf-2
         -Wall
         -Werror

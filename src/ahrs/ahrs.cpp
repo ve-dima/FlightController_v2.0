@@ -5,9 +5,6 @@
 #include "Common.hpp"
 #include <algorithm>
 
-float pressureAltGain = 0.1;
-float pressureVelGain = 0.02;
-
 Eigen::Quaternionf adaptiveSLERP_I(Eigen::Quaternionf q, float gain, const float threshold = 0.97)
 {
     // optimize LERP and SLERP with qI(1,0,0,0)======================
@@ -49,7 +46,10 @@ namespace AHRS
 
     extern float accelerometerNoise;
     extern float barometerNoise;
-    extern int32_t mulka;
+    extern float mulka;
+
+    extern float pressureAltGain;
+    extern float pressureVelGain;
 
     Eigen::Vector3f rawRSpeed, rotateSpeed;
     Eigen::Vector3f rawAcceleration, acceleration;
@@ -61,24 +61,26 @@ namespace AHRS
 
     // float pressureDTAcc = 0;
     // float lastPressureAlt = 0;
+    float pressFilter = 0;
 
     Eigen::Matrix3f P{
         {100, 0, 0},
         {0, 100, 0},
         {0, 0, 10},
     };
-    const Eigen::Matrix3f Q = Eigen::Matrix3f{
-        {0.25, 0.5, 0.5},
-        {0.5, 1., 1.},
-        {0.5, 1., 1},
-    };
+    // const Eigen::Matrix3f Q = Eigen::Matrix3f{
+    //     {0.25, 0.5, 0.5},
+    //     {0.5, 1, 1.},
+    //     {0.5, 1, 1},
+    // };
+    extern Eigen::Matrix3f Q;
     Eigen::Vector3f x{0, 0, 0};
 
     void predictKalman(const float dt)
     {
         const Eigen::Vector3f newX{
-            (x[2] * dt * dt) / 2 + x[1] * dt + x[0],
-            x[1] + dt * x[2],
+            x[0] + (x[1] * dt) + (x[2] * dt * dt / 2),
+            x[1] + (dt * x[2]),
             x[2],
         };
         x = newX;
@@ -86,19 +88,19 @@ namespace AHRS
 
         const Eigen::Matrix3f newP{
             {
-                P(0, 0) + P(1, 0) * dt + (dt * dt * ((P(2, 2) * dt * dt) / 2 + P(1, 2) * dt + P(0, 2))) / 2 + (P(2, 0) * dt * dt) / 2 + dt * ((P(2, 1) * dt * dt) / 2 + P(1, 1) * dt + P(0, 1)),
-                P(0, 1) + P(1, 1) * dt + (P(2, 1) * dt * dt) / 2 + dt * ((P(2, 2) * dt * dt) / 2 + P(1, 2) * dt + P(0, 2)),
-                (P(2, 2) * dt * dt) / 2 + P(1, 2) * dt + P(0, 2),
+                P(0, 0) + P(1, 0) * dt + ((dt * dt) * ((P(2, 2) * (dt * dt)) / 2 + P(1, 2) * dt + P(0, 2))) / 2 + (P(2, 0) * (dt * dt)) / 2 + dt * ((P(2, 1) * (dt * dt)) / 2 + P(1, 1) * dt + P(0, 1)),
+                P(0, 1) + P(1, 1) * dt + (P(2, 1) * (dt * dt)) / 2 + dt * ((P(2, 2) * (dt * dt)) / 2 + P(1, 2) * dt + P(0, 2)),
+                (P(2, 2) * (dt * dt)) / 2 + P(1, 2) * dt + P(0, 2),
             },
 
             {
-                P(1, 0) + P(2, 0) * dt + dt * (P(1, 1) + P(2, 1) * dt) + (dt * dt * (P(1, 2) + P(2, 2) * dt)) / 2,
+                P(1, 0) + P(2, 0) * dt + dt * (P(1, 1) + P(2, 1) * dt) + ((dt * dt) * (P(1, 2) + P(2, 2) * dt)) / 2,
                 P(1, 1) + P(2, 1) * dt + dt * (P(1, 2) + P(2, 2) * dt),
                 P(1, 2) + P(2, 2) * dt,
             },
 
             {
-                (P(2, 2) * dt * dt) / 2 + P(2, 1) * dt + P(2, 0),
+                (P(2, 2) * (dt * dt)) / 2 + P(2, 1) * dt + P(2, 0),
                 P(2, 1) + P(2, 2) * dt,
                 P(2, 2),
             },
@@ -106,25 +108,41 @@ namespace AHRS
         P = newP + (Q * (1.f / mulka));
     }
 
-    void correctPos(const float z,
+    void correctPos(float z,
                     const float R)
     {
-        const float inv_sk = 1 / (P(0, 0) + R);
-        const float error = x(0) - z;
+        pressFilter = (1 - 0.01) * pressFilter + 0.01 * z;
+        z = pressFilter;
+
+        const float S = P(0, 0) + R;
+        const float y = x(0) - z;
 
         Eigen::Vector3f newX{
-            x(0) - (P(0, 0) * error) * inv_sk,
-            x(1) - (P(1, 0) * error) * inv_sk,
-            x(2) - (P(2, 0) * error) * inv_sk,
+            x[0] - (P(0, 0) * y) / S,
+            x[1] - (P(1, 0) * y) / S,
+            x[2] - (P(2, 0) * y) / S,
         };
         x = newX;
 
         Eigen::Matrix3f newP{
-            {-P(0, 0) * (P(0, 0) * inv_sk - 1), -P(0, 1) * (P(0, 0) * inv_sk - 1), -P(0, 2) * (P(0, 0) * inv_sk - 1)},
-            {P(1, 0) - P(0, 0) * P(1, 0) * inv_sk, P(1, 1) - P(0, 1) * P(1, 0) * inv_sk, P(1, 2) - P(0, 2) * P(1, 0) * inv_sk},
-            {P(2, 0) - P(0, 0) * P(2, 0) * inv_sk, P(2, 1) - P(0, 1) * P(2, 0) * inv_sk, P(2, 2) - P(0, 2) * P(2, 0) * inv_sk},
+            {
+                -P(0, 0) * (P(0, 0) / S - 1),
+                -P(0, 1) * (P(0, 0) / S - 1),
+                -P(0, 2) * (P(0, 0) / S - 1),
+            },
+            {
+                P(1, 0) - (P(0, 0) * P(1, 0)) / S,
+                P(1, 1) - (P(0, 1) * P(1, 0)) / S,
+                P(1, 2) - (P(0, 2) * P(1, 0)) / S,
+            },
+            {
+                P(2, 0) - (P(0, 0) * P(2, 0)) / S,
+                P(2, 1) - (P(0, 1) * P(2, 0)) / S,
+                P(2, 2) - (P(0, 2) * P(2, 0)) / S,
+            },
         };
         P = newP;
+
         // const float vel = (lastPressureAlt - z) / pressureDTAcc;
         // pressureDTAcc = 0;
         // lastPressureAlt = z;
@@ -136,20 +154,32 @@ namespace AHRS
     void correctAcc(const float z,
                     const float R)
     {
-        const float inv_sk = 1 / (P(2, 2) + R);
-        const float error = x(2) - z;
+        const float S = P(2, 2) + R;
+        const float y = x(2) - z;
 
         Eigen::Vector3f newX{
-            x(0) - (P(0, 2) * error) * inv_sk,
-            x(1) - (P(1, 2) * error) * inv_sk,
-            x(2) - (P(2, 2) * error) * inv_sk,
+            x[0] - (P(0, 2) * y) / S,
+            x[1] - (P(1, 2) * y) / S,
+            x[2] - (P(2, 2) * y) / S,
         };
         x = newX;
 
         Eigen::Matrix3f newP{
-            {P(0, 0) - P(0, 2) * P(2, 0) * inv_sk, P(0, 1) - P(0, 2) * P(2, 1) * inv_sk, P(0, 2) - P(0, 2) * P(2, 2) * inv_sk},
-            {P(1, 0) - P(1, 2) * P(2, 0) * inv_sk, P(1, 1) - P(1, 2) * P(2, 1) * inv_sk, P(1, 2) - P(1, 2) * P(2, 2) * inv_sk},
-            {-P(2, 0) * (P(2, 2) * inv_sk - 1), -P(2, 1) * (P(2, 2) * inv_sk - 1), -P(2, 2) * (P(2, 2) * inv_sk - 1)},
+            {
+                P(0, 0) - (P(0, 2) * P(2, 0)) / S,
+                P(0, 1) - (P(0, 2) * P(2, 1)) / S,
+                P(0, 2) - (P(0, 2) * P(2, 2)) / S,
+            },
+            {
+                P(1, 0) - (P(1, 2) * P(2, 0)) / S,
+                P(1, 1) - (P(1, 2) * P(2, 1)) / S,
+                P(1, 2) - (P(1, 2) * P(2, 2)) / S,
+            },
+            {
+                -P(2, 0) * (P(2, 2) / S - 1),
+                -P(2, 1) * (P(2, 2) / S - 1),
+                -P(2, 2) * (P(2, 2) / S - 1),
+            },
         };
         P = newP;
 
@@ -200,9 +230,11 @@ namespace AHRS
         Eigen::Quaternionf worldFrameAcc = (current.conjugate() *
                                             Eigen::Quaternionf(0.f, acceleration.x(), acceleration.y(), acceleration.z())) *
                                            current;
+        // linearAcceleration = worldFrameAcc.vec();
         linearAcceleration = worldFrameAcc.vec() - Eigen::Vector3f{0, 0, 1};
-        worldFrameAcc.coeffs() *= 1 / G;
+        linearAcceleration *= 9.81;
 
+        worldFrameAcc.coeffs() *= 1 / G;
         Eigen::Quaternionf accDeltaQ;
         accDeltaQ.w() = std::sqrt((worldFrameAcc.z() + 1) / 2);
         accDeltaQ.x() = -worldFrameAcc.y() / (2 * accDeltaQ.w());

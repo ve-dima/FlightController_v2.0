@@ -126,8 +126,8 @@ namespace ICM20948
 
     static constexpr register_bank2_config_t _register_bank2_cfg[] = {
         // Register                             | Set bits, Clear bits
-        {Register::BANK_2::GYRO_SMPLRT_DIV, 4, 0},
-        {Register::BANK_2::ACCEL_SMPLRT_DIV_2, 4, 0},
+        {Register::BANK_2::GYRO_SMPLRT_DIV, 0, 0},
+        {Register::BANK_2::ACCEL_SMPLRT_DIV_2, 0, 0},
         {Register::BANK_2::GYRO_CONFIG_1, GYRO_CONFIG_1_BIT::GYRO_FS_SEL_2000_DPS | GYRO_CONFIG_1_BIT::GYRO_DLPFCFG_36 | GYRO_CONFIG_1_BIT::GYRO_FCHOICE},
         {Register::BANK_2::ACCEL_CONFIG, ACCEL_CONFIG_BIT::ACCEL_FS_SEL_16G | ACCEL_CONFIG_BIT::ACCEL_DLPFCFG_34 | ACCEL_CONFIG_BIT::ACCEL_FCHOICE},
         // {Register::BANK_2::GYRO_CONFIG_2, GYRO_CONFIG_2_BIT::XGYRO_CTEN | GYRO_CONFIG_2_BIT::YGYRO_CTEN | GYRO_CONFIG_2_BIT::ZGYRO_CTEN, 0},

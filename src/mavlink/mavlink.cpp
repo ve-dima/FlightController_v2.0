@@ -72,10 +72,10 @@ namespace mavlink
             // mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
             //                                     AHRS::x(0) * 100 + 2'000, AHRS::x(1), heightByPressure,
             //                                     AHRS::P(0, 0), AHRS::P(1, 1), AHRS::P(2, 2));
-
+            Eigen::Vector3f acc = AHRS::getLinearAcceleration();
             mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
                                                 AHRS::x(0), AHRS::x(1), heightByPressure,
-                                                NAN, NAN, NAN);
+                                                acc.x(), acc.y(), acc.z());
         }
 
         // for (static uint32_t timer = 0; millis() - timer > 100; timer = millis())
