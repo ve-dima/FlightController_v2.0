@@ -1,19 +1,31 @@
 #include "S-Bus.hpp"
 #include "Common.hpp"
+#include <cstring>
+#include <algorithm>
 
 bool SBus::parseData(uint8_t data[], size_t len, bool parityError, int16_t channels[], unsigned &channelCount, uint8_t &rssi, bool &signalAvailable)
 {
-    // lastReceiveTime = millis();
+    lastReceiveTime = millis();
 
-    // if (millis() - lastReceiveTime >= PROTOCOL_TIMEGAP)
-    //     state = State::get_header, len = 0;
-    // if (parityError)
-    //     state = State::ignore;
+    if (millis() - lastReceiveTime >= PROTOCOL_TIMEGAP)
+        state = State::get_header, len = 0;
+
+    if (parityError)
+        state = State::ignore;
+
+    if (len < PROTOCOL_DATA_LEN)
+    {
+        const unsigned currentLen = std::min<unsigned>(len, PROTOCOL_DATA_LEN - len);
+        memcpy(dataBuffer + len, data, currentLen);
+        len += currentLen;
+        return false;
+    }
+
     bool isOk = false;
 
     for (unsigned i = 0; i < len; i++)
     {
-        uint8_t inByte = data[i];
+        uint8_t inByte = dataBuffer[i];
         switch (state)
         {
         case State::get_header:

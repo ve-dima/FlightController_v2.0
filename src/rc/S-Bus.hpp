@@ -11,7 +11,7 @@
 class SBus : public RC_parser
 {
 private:
-    static constexpr uint32_t PROTOCOL_TIMEGAP = 5; // Packets are received very ~7ms so use ~half that for the gap
+    static constexpr uint32_t PROTOCOL_TIMEGAP = 4; // Packets are received very ~7ms so use ~half that for the gap
     static constexpr uint32_t PROTOCOL_MAX_DELAY = 20;
     static constexpr uint8_t PROTOCOL_PACKET_LEN = 25;
 
