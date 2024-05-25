@@ -49,6 +49,23 @@ namespace Control
                 .maxICoef = 0.30,
                 .max = 1,
             }}};
+            
+    PIDf::Settings velocitySetings{
+        .P = 0.2,
+        .I = 0,
+        .D = 0,
+        .maxICoef = 0.15,
+        .max = 0.8,
+    };
+
+    PIDf::Settings positionSettings
+    {
+        .P = 1,
+        .I = 0,
+        .D = 0,
+        .maxICoef = 0,
+        .max = 3,
+    };
 
     float minimalTrust = 0.1;
     float yawWeight = 0.4;
@@ -77,6 +94,10 @@ namespace Control
         rateSettings.axis.yaw.I = std::clamp<float>(rateSettings.axis.yaw.I, 0, 0.5);
         rateSettings.axis.yaw.D = std::clamp<float>(rateSettings.axis.yaw.D, 0, 0.01);
         rateSettings.axis.yaw.maxICoef = std::clamp<float>(rateSettings.axis.yaw.maxICoef, 0, 1);
+
+        velocitySetings.P = std::clamp<float>(rateSettings.axis.yaw.P, 0.1, 0.4);
+        velocitySetings.I = std::clamp<float>(rateSettings.axis.yaw.I, 0, 0.1);
+        velocitySetings.D = std::clamp<float>(rateSettings.axis.yaw.D, 0, 0.1);
 
         minimalTrust = std::clamp<float>(minimalTrust, 0.05, 0.5);
         yawWeight = std::clamp<float>(yawWeight, 0, 1);
@@ -108,6 +129,10 @@ namespace Control
     PARAM_ADD_WITH_CALLBACK(param::FLOAT, MC_YAWRATE_I, &rateSettings.axis.yaw.I, parameterUpdate);
     PARAM_ADD_WITH_CALLBACK(param::FLOAT, MC_YAWRATE_D, &rateSettings.axis.yaw.D, parameterUpdate);
     PARAM_ADD_WITH_CALLBACK(param::FLOAT, MC_YR_INT_LIM, &rateSettings.axis.yaw.maxICoef, parameterUpdate);
+
+    PARAM_ADD_WITH_CALLBACK(param::FLOAT, MPC_Z_VEL_P, &velocitySetings.P, parameterUpdate);
+    PARAM_ADD_WITH_CALLBACK(param::FLOAT, MPC_Z_VEL_I, &velocitySetings.I, parameterUpdate);
+    PARAM_ADD_WITH_CALLBACK(param::FLOAT, MPC_Z_VEL_D, &velocitySetings.D, parameterUpdate);
 
     PARAM_ADD_WITH_CALLBACK(param::FLOAT, MPC_THR_MIN, &minimalTrust, parameterUpdate);
     PARAM_ADD_WITH_CALLBACK(param::FLOAT, MC_YAW_WEIGH, &yawWeight, parameterUpdate);

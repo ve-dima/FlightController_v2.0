@@ -41,7 +41,7 @@ public:
         const type_t dPart = change * settings.D;
         integral = std::clamp(integral, -settings.maxICoef, settings.maxICoef);
 
-        output = pPart - integral - dPart;
+        output = pPart + integral - dPart;
         output = std::clamp(output, -settings.max, settings.max);
 
         return output;

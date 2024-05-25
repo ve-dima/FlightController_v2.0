@@ -24,16 +24,16 @@ namespace mavlink
 
         for (static uint32_t attTimer = 0; millis() - attTimer > 50; attTimer = millis())
         {
-            // auto attitude = AHRS::getFRD_Attitude();
+            auto attitude = AHRS::getFRD_Attitude();
             // const AHRS::Eulerf eulerAttitude = AHRS::getEulerFRD();
             const auto rotateRate = AHRS::getRSpeed();
             // const auto targetRate = Control::getTargetRate();
-            const auto targetAttitude = Control::getTargetAttitude();
+            // const auto targetAttitude = Control::getTargetAttitude();
             // const auto targetThrust = Control::getTargetThrust();
             // const float mavTAtt[4] = {targetAttitude.w(), targetAttitude.x(), targetAttitude.y(), targetAttitude.z()};
 
             mavlink_msg_attitude_quaternion_send(MAVLINK_COMM_0, millis(),
-                                                 targetAttitude.w(), targetAttitude.x(), targetAttitude.y(), targetAttitude.z(),
+                                                 attitude.w(), attitude.x(), attitude.y(), attitude.z(),
                                                  rotateRate.x(), rotateRate.y(), -rotateRate.z(), nullptr);
 
             // mavlink_msg_attitude_send(MAVLINK_COMM_0, millis(),
@@ -45,15 +45,15 @@ namespace mavlink
             //                                  targetRate.x(), targetRate.y(), -targetRate.z(),
             //                                  targetThrust);
 
-            // const Eigen::Vector3f t = Control::getTargetThrustVector();
-            // float powers[8];
-            // std::copy(Motor::getPower(), Motor::getPower() + 4, powers);
-            // powers[4] = t.x();
-            // powers[5] = t.y();
-            // powers[6] = t.z();
+            const Eigen::Vector3f t = Control::getTargetThrustVector();
+            float powers[8];
+            std::copy(Motor::getPower(), Motor::getPower() + 4, powers);
+            powers[4] = t.x();
+            powers[5] = t.y();
+            powers[6] = t.z();
 
-            // mavlink_msg_actuator_control_target_send(MAVLINK_COMM_0, millis(),
-            //                                          0, powers);
+            mavlink_msg_actuator_control_target_send(MAVLINK_COMM_0, millis(),
+                                                     0, powers);
 
             // mavlink_msg_scaled_pressure_send(MAVLINK_COMM_0, millis(),
             //                                  AHRS::getPressure(), 0,
@@ -72,10 +72,10 @@ namespace mavlink
             // mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
             //                                     AHRS::x(0) * 100 + 2'000, AHRS::x(1), heightByPressure,
             //                                     AHRS::P(0, 0), AHRS::P(1, 1), AHRS::P(2, 2));
-            Eigen::Vector3f acc = AHRS::getLinearAcceleration();
+            // Eigen::Vector3f acc = AHRS::getLinearAcceleration();
             mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
-                                                AHRS::x(0), AHRS::x(1), heightByPressure,
-                                                acc.x(), acc.y(), acc.z());
+                                                AHRS::x(0) + 1e3, AHRS::x(1), heightByPressure + 1e3,
+                                                Control::targetAltitude, Control::targetVelocity, Control::autoHeightTrust);
         }
 
         // for (static uint32_t timer = 0; millis() - timer > 100; timer = millis())

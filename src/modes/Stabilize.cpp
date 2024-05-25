@@ -7,10 +7,12 @@
 #include "rc/RC.hpp"
 #include "param/param.hpp"
 #include "math/math.hpp"
+#include <stm32g4xx.h>
 
 float manualMaxTilt = 30 * (M_PI / 180);
 float manualYawRate = 150 * (M_PI / 180);
 float acroRate = 600 * (M_PI / 180);
+float altitudeSetSpeed = 2;
 
 Stabilize stabilizeMode;
 
@@ -54,7 +56,7 @@ void Stabilize::attitudeTickHandler()
     else if (RC::channel(RC::ChannelFunction::AUX_1) > 0.9)
         levelMode();
     else
-        levelMode();
+        altMode();
 }
 
 Eigen::Quaternionf Stabilize::getSPFromRC()
@@ -110,31 +112,53 @@ void Stabilize::levelMode()
     Control::setTargetThrust(getThrottleFromRC());
 }
 
+void Stabilize::altMode()
+{
+    if (RC::channel(RC::ChannelFunction::THROTTLE) < -0.9)
+        Control::setTargetThrust(0);
+    else
+    {
+        Control::setTargetThrust(getThrottleFromRC());
+
+        if (not RC::inDZ(RC::ChannelFunction::YAW))
+            manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate,
+                manualYawSetPoint = constrainAngle(manualYawSetPoint);
+    }
+
+    Control::setTargetAttitude(getSPFromRC());
+    Control::trustMode = Control::TrustMode::ALTITUDE;
+    if (not RC::inDZ(RC::ChannelFunction::THROTTLE))
+    {
+        Control::targetAltitude = AHRS::x[0] + expo(RC::channel(RC::ChannelFunction::THROTTLE), 0.5) * altitudeSetSpeed;
+        // __BKPT(0);
+    }
+}
+
 void Stabilize::acroMode()
 {
-    Eigen::Vector3f rotateVec{
-        RC::channel(RC::ChannelFunction::ROLL),
-        RC::channel(RC::ChannelFunction::PITCH),
-        RC::channel(RC::ChannelFunction::YAW),
-    };
+    // Eigen::Vector3f rotateVec{
+    //     RC::channel(RC::ChannelFunction::ROLL),
+    //     RC::channel(RC::ChannelFunction::PITCH),
+    //     RC::channel(RC::ChannelFunction::YAW),
+    // };
 
-    if (RC::inDZ(RC::ChannelFunction::ROLL))
-        rotateVec.x() = 0;
-    if (RC::inDZ(RC::ChannelFunction::PITCH))
-        rotateVec.y() = 0;
-    if (RC::inDZ(RC::ChannelFunction::YAW))
-        rotateVec.z() = 0;
+    // if (RC::inDZ(RC::ChannelFunction::ROLL))
+    //     rotateVec.x() = 0;
+    // if (RC::inDZ(RC::ChannelFunction::PITCH))
+    //     rotateVec.y() = 0;
+    // if (RC::inDZ(RC::ChannelFunction::YAW))
+    //     rotateVec.z() = 0;
 
-    for (float val : rotateVec)
-        val = expo(val, 0.7) * acroRate;
+    // for (float val : rotateVec)
+    //     val = expo(val, 0.7) * acroRate;
 
-    Eigen::Quaternionf deltaQ = omega(AHRS::getFRD_Attitude(), rotateVec);
-    acroSP.coeffs() += deltaQ.coeffs() * AHRS::lastDT;
-    acroSP.normalize();
+    // Eigen::Quaternionf deltaQ = omega(AHRS::getFRD_Attitude(), rotateVec);
+    // acroSP.coeffs() += deltaQ.coeffs() * AHRS::lastDT;
+    // acroSP.normalize();
 
-    Control::setTargetAttitude(acroSP);
-    Control::trustMode = Control::TrustMode::MANUAL;
-    Control::setTargetThrust(getThrottleFromRC());
+    // Control::setTargetAttitude(acroSP);
+    // Control::trustMode = Control::TrustMode::MANUAL;
+    // Control::setTargetThrust(getThrottleFromRC());
 }
 
 PARAM_ADD(param::FLOAT, MPC_MAN_TILT_MAX, &manualMaxTilt);

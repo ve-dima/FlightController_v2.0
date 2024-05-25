@@ -28,7 +28,13 @@ namespace Control
                       .yaw = PIDf(angleSettings.axis.yaw),
                   }};
 
+    PIDf velocityPid(velocitySetings);
+    PIDf positionPid(positionSettings);
+
     float targetThrust = 0;
+    float autoHeightTrust = 0;
+    float targetVelocity = 0;
+    float targetAltitude = 0;
     Eigen::Vector3f targetTrustVector = Eigen::Vector3f(0, 0, 0);
     Eigen::Vector3f targetRate = Eigen::Vector3f(0, 0, 0);
     Eigen::Quaternionf targetAttitude = Eigen::Quaternionf(1, 0, 0, 0);
@@ -94,7 +100,9 @@ namespace Control
         // }
 
         for (int i = 0; i < 4; i++)
-            outPower.array[i] = std::clamp<float>(outPower.array[i] + targetThrust, minimalTrust, 1);
+            outPower.array[i] = std::clamp<float>(outPower.array[i] +
+                                                      targetThrust + autoHeightTrust,
+                                                  minimalTrust, 1);
 
         bool wrongVal = false;
         for (int i = 0; i < 4; i++)
@@ -108,7 +116,7 @@ namespace Control
         }
 
         for (int i = 0; i < 4; i++)
-            Motor::setPower(i, targetThrust);
+            Motor::setPower(i, outPower.array[i]);
     }
 
     /// Первый каскад управления - PID-контроллер скорости вращения
@@ -185,8 +193,28 @@ namespace Control
     /// Третий каскад управления - PID-контроллер скорости
     void linearVelocityHandler()
     {
-        if(trustMode == TrustMode::MANUAL)
+        if (trustMode == TrustMode::MANUAL)
+        {
+            autoHeightTrust = 0;
             return;
-        
+        }
+
+        const float velocityError = targetVelocity - AHRS::x[1],
+                    acceleration = AHRS::x[2],
+                    dt = AHRS::lastDT;
+        autoHeightTrust = velocityPid.calculate(velocityError, acceleration, 1, dt);
+    }
+
+    void positionControlHandler()
+    {
+        if (trustMode != TrustMode::ALTITUDE)
+        {
+            targetVelocity = 0;
+            return;
+        }
+
+        targetThrust = 0.5;
+        const float positionError = targetAltitude - AHRS::x[0];
+        targetVelocity = positionPid.calculate(positionError, 0, 0, 0);
     }
 }

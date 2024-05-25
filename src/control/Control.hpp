@@ -15,6 +15,7 @@ namespace Control
         } axis;
         std::array<PIDf::Settings, 3> settings;
     } extern rateSettings, angleSettings;
+    extern PIDf::Settings velocitySetings, positionSettings;
 
     enum class TrustMode
     {
@@ -27,9 +28,14 @@ namespace Control
     extern float minimalTrust;
     extern float yawWeight;
 
+    extern float targetAltitude;
+    extern float targetVelocity;
+    extern float autoHeightTrust;
+
     void rateHandler();
     void rotateVelocityHandler();
     void linearVelocityHandler();
+    void positionControlHandler();
     void updateMotorPower();
 
     Eigen::Vector3f getTargetRate();

@@ -105,7 +105,7 @@ namespace AHRS
                 P(2, 2),
             },
         };
-        P = newP + (Q * (1.f / mulka));
+        P = newP + (Q * (mulka * dt));
     }
 
     void correctPos(float z,

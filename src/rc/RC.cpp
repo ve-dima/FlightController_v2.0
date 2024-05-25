@@ -26,7 +26,7 @@ namespace RC
     int32_t _channelsAssign[static_cast<int>(ChannelFunction::__end)] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     float _minChannelValue[maxChannelCount] = {191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191},
           _maxChannelValue[maxChannelCount] = {1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792},
-          _channelDeadZone[maxChannelCount] = {5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
+          _channelDeadZone[maxChannelCount] = {5, 10, 10, 10, 10, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
           _channelIsReverse[maxChannelCount] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     ProtocolDetector _selectedProtocol = ProtocolDetector::CRSF;
 
@@ -105,7 +105,7 @@ namespace RC
 
             normalizedValue = normalizedValue * 2 - 1;
             normalizedValue = std::clamp<float>(normalizedValue, -1, 1);
-            _channelInDZ[i] = std::abs(normalizedValue) <= (_channelDeadZone[i] * 1e-3);
+            _channelInDZ[i] = std::abs(normalizedValue) <= (_channelDeadZone[i] * 1e-2);
             _channels[i] = normalizedValue;
             _channelsRaw[i] = channels[i];
         }

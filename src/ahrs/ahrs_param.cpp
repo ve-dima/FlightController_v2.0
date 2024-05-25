@@ -8,7 +8,7 @@ namespace AHRS
     PARAM_ADD(param::FLOAT, CAL_GYRO_YOFF, &gyroscopeOffset[1]);
     PARAM_ADD(param::FLOAT, CAL_GYRO_ZOFF, &gyroscopeOffset[2]);
 
-    float accelerometerOffset[] = {-0.01, -0.01, 0.02};
+    float accelerometerOffset[] = {0, 0, 0};
     PARAM_ADD(param::FLOAT, CAL_ACC_XOFF, &accelerometerOffset[0]);
     PARAM_ADD(param::FLOAT, CAL_ACC_YOFF, &accelerometerOffset[1]);
     PARAM_ADD(param::FLOAT, CAL_ACC_ZOFF, &accelerometerOffset[2]);
@@ -22,16 +22,16 @@ namespace AHRS
     // float accelerationRejectionAngle;
     // PARAM_ADD(param::FLOAT, IMU_ACC_RJT_ANG, &accelerationRejectionAngle);
 
-    float accelerometerNoise = 0.37;
+    float accelerometerNoise = 0.5;
     PARAM_ADD(param::FLOAT, AHRS_ACC_NOISE, &accelerometerNoise);
 
     float barometerNoise = 2;
     PARAM_ADD(param::FLOAT, AHRS_BARO_NOISE, &barometerNoise);
 
-    float mulka = 3;
+    float mulka = 1;
     PARAM_ADD(param::FLOAT, AHRS_EKF_Q, &mulka);
 
-    float pressureAltGain = 0.05;
+    float pressureAltGain = 0.0;
     PARAM_ADD(param::FLOAT, AHRS_ALT_GAIN, &pressureAltGain);
 
     float pressureVelGain = 0.025;
@@ -39,8 +39,8 @@ namespace AHRS
 
     Eigen::Matrix3f Q{
         {0, 0, 0},
-        {0, 0.0001, 0},
-        {0, 0, 0.5},
+        {0, 0, 0},
+        {0, 0, 1},
     };
     float q1 = 0, q2 = 0, q3 = 1;
     void s()
