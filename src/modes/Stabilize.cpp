@@ -18,8 +18,6 @@ Stabilize stabilizeMode;
 
 bool Stabilize::needEnter(const char *&reason)
 {
-    // return true;
-
     if (RC::channel(RC::ChannelFunction::ARMSWITCH) > 0.2)
     {
         reason = "manual switch";
@@ -39,14 +37,6 @@ void Stabilize::onEnter()
 
     LED::setLED(LED::Color::green, LED::Action::double_short_blink);
     Motor::arm();
-}
-
-float constrainAngle(float x)
-{
-    x = std::fmod<float>(x + 180, 360);
-    if (x < 0)
-        x += 360;
-    return x - 180;
 }
 
 void Stabilize::attitudeTickHandler()
@@ -77,8 +67,7 @@ Eigen::Quaternionf Stabilize::getSPFromRC()
         qRPSP = Eigen::Quaternionf::Identity();
 
     if (not RC::inDZ(RC::ChannelFunction::YAW) and RC::channel(RC::ChannelFunction::THROTTLE) > -0.9)
-        manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate,
-            manualYawSetPoint = constrainAngle(manualYawSetPoint);
+        manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate;
 
     Eigen::Quaternionf qYawSP(std::cos(manualYawSetPoint / 2.f), 0.f, 0.f, std::sin(manualYawSetPoint / 2.f));
 
@@ -103,8 +92,7 @@ void Stabilize::levelMode()
         Control::setTargetThrust(getThrottleFromRC());
 
         if (not RC::inDZ(RC::ChannelFunction::YAW))
-            manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate,
-                manualYawSetPoint = constrainAngle(manualYawSetPoint);
+            manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate;
     }
 
     Control::setTargetAttitude(getSPFromRC());
@@ -121,8 +109,7 @@ void Stabilize::altMode()
         Control::setTargetThrust(getThrottleFromRC());
 
         if (not RC::inDZ(RC::ChannelFunction::YAW))
-            manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate,
-                manualYawSetPoint = constrainAngle(manualYawSetPoint);
+            manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate;
     }
 
     Control::setTargetAttitude(getSPFromRC());

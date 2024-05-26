@@ -11,7 +11,6 @@ namespace RC
         not_connected = 0,
         CRSF,
         SBUS,
-        IBUS,
         __end,
     };
 
@@ -54,6 +53,8 @@ namespace RC
         __end,
     };
 
+    constexpr uint32_t signalLoseTimeout = 250;
+
     State state();
     uint8_t rssi();
     uint8_t channelCount();
@@ -64,10 +65,10 @@ namespace RC
     bool inDZ(unsigned channel);
     bool inDZ(ChannelFunction channel);
 
-    void update(int16_t channels[], unsigned channelCount, uint8_t rssi, bool signalAvailable);
-    void checkValues();
-
     void callBackHandler();
+    void ahrsTickHandler();
+
+    void checkValues();
 };
 
 class RC_parser

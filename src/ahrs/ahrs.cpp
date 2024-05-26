@@ -42,25 +42,19 @@ namespace AHRS
 
     extern float accelerationFilterGain;
     extern float accelerationRejection;
-    // extern float accelerationRejectionAngle;
 
     extern float accelerometerNoise;
     extern float barometerNoise;
     extern float mulka;
 
-    extern float pressureAltGain;
-    extern float pressureVelGain;
-
     Eigen::Vector3f rawRSpeed, rotateSpeed;
     Eigen::Vector3f rawAcceleration, acceleration;
-    Eigen::Quaternionf attitude = Eigen::Quaternionf(1, 0, 0, 0);
+    Eigen::Quaternionf attitude = Eigen::Quaternionf::Identity();
     Eulerf eulerAttitude;
     float G = 1;
     float pressure, temperature;
     Eigen::Vector3f linearAcceleration;
 
-    // float pressureDTAcc = 0;
-    // float lastPressureAlt = 0;
     float pressFilter = 0;
 
     Eigen::Matrix3f P{
@@ -68,11 +62,6 @@ namespace AHRS
         {0, 100, 0},
         {0, 0, 10},
     };
-    // const Eigen::Matrix3f Q = Eigen::Matrix3f{
-    //     {0.25, 0.5, 0.5},
-    //     {0.5, 1, 1.},
-    //     {0.5, 1, 1},
-    // };
     extern Eigen::Matrix3f Q;
     Eigen::Vector3f x{0, 0, 0};
 
@@ -84,7 +73,6 @@ namespace AHRS
             x[2],
         };
         x = newX;
-        // pressureDTAcc += dt;
 
         const Eigen::Matrix3f newP{
             {
@@ -142,13 +130,6 @@ namespace AHRS
             },
         };
         P = newP;
-
-        // const float vel = (lastPressureAlt - z) / pressureDTAcc;
-        // pressureDTAcc = 0;
-        // lastPressureAlt = z;
-
-        // x[0] = (1 - pressureAltGain) * x[0] + pressureAltGain * z;
-        // x[1] = (1 - pressureVelGain) * x[1] + pressureVelGain * vel;
     }
 
     void correctAcc(const float z,
@@ -182,16 +163,12 @@ namespace AHRS
             },
         };
         P = newP;
-
-        // x[2] = z;
     }
 
     void update()
     {
-        static uint32_t maxClk = 0;
-        uint32_t startTime = tick();
+        const Eigen::Quaternionf attitude = getFRD_Attitude();
 
-        Eigen::Quaternionf attitude = getFRD_Attitude();
         float sinr_cosp = 2 * (attitude.w() * attitude.x() + attitude.y() * attitude.z());
         float cosr_cosp = 1 - 2 * (attitude.x() * attitude.x() + attitude.y() * attitude.y());
         eulerAttitude.roll = std::atan2(sinr_cosp, cosr_cosp);
@@ -205,8 +182,6 @@ namespace AHRS
         float siny_cosp = 2 * (attitude.w() * attitude.z() + attitude.x() * attitude.y());
         float cosy_cosp = 1 - 2 * (attitude.y() * attitude.y() + attitude.z() * attitude.z());
         eulerAttitude.yaw = std::atan2(siny_cosp, cosy_cosp);
-
-        maxClk = std::max(maxClk, tick() - startTime);
     }
 
     void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f rAcc, float dT)
@@ -230,7 +205,6 @@ namespace AHRS
         Eigen::Quaternionf worldFrameAcc = (current.conjugate() *
                                             Eigen::Quaternionf(0.f, acceleration.x(), acceleration.y(), acceleration.z())) *
                                            current;
-        // linearAcceleration = worldFrameAcc.vec();
         linearAcceleration = worldFrameAcc.vec() - Eigen::Vector3f{0, 0, 1};
         linearAcceleration *= 9.81;
 
@@ -273,10 +247,7 @@ namespace AHRS
     Eigen::Vector3f getRawAcceleration() { return rawAcceleration; }
 
     Eigen::Vector3f getRSpeed() { return rotateSpeed; }
-    Eigen::Vector3f getFRD_RSpeed()
-    {
-        return Eigen::Vector3f(rotateSpeed.x(), rotateSpeed.y(), -rotateSpeed.z());
-    }
+    Eigen::Vector3f getFRD_RSpeed() { return Eigen::Vector3f(rotateSpeed.x(), rotateSpeed.y(), -rotateSpeed.z()); }
     Eigen::Vector3f getAcceleration() { return acceleration; }
     float getG() { return G; }
 

@@ -8,7 +8,7 @@ namespace RC
         _channelDeadZone[maxChannelCount],
         _channelIsReverse[maxChannelCount];
     extern ProtocolDetector _selectedProtocol;
-    static_assert(sizeof(int32_t) == sizeof(_selectedProtocol), "ban");
+    static_assert(sizeof(int32_t) == sizeof(_selectedProtocol), "Wrong size");
 
     PARAM_ADD_WITH_CALLBACK(param::FLOAT, RC1_MIN, &RC::_minChannelValue[0], RC::checkValues);
     PARAM_ADD_WITH_CALLBACK(param::FLOAT, RC2_MIN, &RC::_minChannelValue[1], RC::checkValues);

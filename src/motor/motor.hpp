@@ -17,20 +17,6 @@ namespace Motor
         armed,
     };
 
-    // enum class Protocol
-    // {
-    //     pwm50,
-    //     pwm100,
-    //     pwm200,
-    //     pwm400,
-    //     dshot150,
-    //     dshot300,
-    // };
-
-    // State getState();
-    // void setProtocol(Protocol);
-    // Protocol getProtocol();
-
     bool setPower(unsigned motor, float power);
     float getPower(unsigned motor);
     const float *const getPower();
@@ -40,11 +26,6 @@ namespace Motor
     State getState();
 
     void stateHandler();
-
-    // void setChannel(unsigned motor, int channel);
-    // int getChannel(unsigned motor);
-
-    // int getMotor(unsigned channel);
 
     void updateOutput(unsigned motor);
 }

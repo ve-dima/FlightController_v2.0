@@ -7,25 +7,37 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
 set(CXX_CF 
-        # -Og
-        -O2
+        -Og
+        # -O2
         -g -gdwarf-2
         -Wall
         -Werror
 )
+set(MCU -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard)
+
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
+
 project (mavlink)
 add_library(mavlink INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lib/mavlink)
-target_include_directories(mavlink INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lib/mavlink)
 target_compile_options(mavlink INTERFACE -Wno-address-of-packed-member)
-target_compile_definitions(mavlink INTERFACE MAVLINK_NO_SIGN_PACKET MAVLINK_NO_SIGNATURE_CHECK MAVLINK_USE_CONVENIENCE_FUNCTIONS)
+target_include_directories(mavlink INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lib/mavlink)
+target_compile_definitions(mavlink INTERFACE 
+        MAVLINK_NO_SIGN_PACKET
+        MAVLINK_NO_SIGNATURE_CHECK
+        MAVLINK_USE_CONVENIENCE_FUNCTIONS
+        MAVLINK_COMM_NUM_BUFFERS=4
+)
 
 project(lwrb)
 add_subdirectory(lib/lwrb/lwrb)
 target_compile_definitions(lwrb PUBLIC LWRB_DISABLE_ATOMIC)
+target_compile_options(lwrb PRIVATE
+        -O2
+        ${MCU}
+)
 
 project(FlightController C CXX ASM)
-set(MCU -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard)
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/platform/stm32/STM32G431CBTx_FLASH.ld)
 file(GLOB_RECURSE SOURCES
         "CMSIS_G4/Source/system_stm32g4xx.c"
@@ -80,8 +92,8 @@ target_include_directories(${PROJECT_NAME}.elf
                 "platform/stm32"
 )
 target_link_libraries (${PROJECT_NAME}.elf Eigen3::Eigen)
-target_link_libraries (${PROJECT_NAME}.elf mavlink)
 target_link_libraries (${PROJECT_NAME}.elf lwrb)
+target_link_libraries (${PROJECT_NAME}.elf mavlink)
 target_precompile_headers(mavlink
         INTERFACE "include/mavlink_bridge_header.hpp")
  

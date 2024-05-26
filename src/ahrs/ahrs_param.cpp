@@ -16,12 +16,6 @@ namespace AHRS
     float accelerationFilterGain = 0.01;
     PARAM_ADD(param::FLOAT, AHRS_ACC_GAIN, &accelerationFilterGain);
 
-    float accelerationRejection = 0.5;
-    PARAM_ADD(param::FLOAT, AHRS_ACC_RJT, &accelerationRejection);
-
-    // float accelerationRejectionAngle;
-    // PARAM_ADD(param::FLOAT, IMU_ACC_RJT_ANG, &accelerationRejectionAngle);
-
     float accelerometerNoise = 0.5;
     PARAM_ADD(param::FLOAT, AHRS_ACC_NOISE, &accelerometerNoise);
 
@@ -30,12 +24,6 @@ namespace AHRS
 
     float mulka = 1;
     PARAM_ADD(param::FLOAT, AHRS_EKF_Q, &mulka);
-
-    float pressureAltGain = 0.0;
-    PARAM_ADD(param::FLOAT, AHRS_ALT_GAIN, &pressureAltGain);
-
-    float pressureVelGain = 0.025;
-    PARAM_ADD(param::FLOAT, AHRS_VEL_GAIN, &pressureVelGain);
 
     Eigen::Matrix3f Q{
         {0, 0, 0},

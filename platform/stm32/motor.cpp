@@ -66,17 +66,18 @@ namespace Motor
         TIM16->CCER |= TIM_CCER_CC1E;
         TIM1->CCER |= TIM_CCER_CC3E | TIM_CCER_CC4E;
 
-        TIM1->BDTR |= TIM_BDTR_MOE;
-        TIM1->CR1 = TIM2->CR1 = TIM16->CR1 = TIM17->CR1 = TIM_CR1_CEN;
-
         for (auto c : assignTable)
             *c = 0;
+
+        TIM1->BDTR |= TIM_BDTR_MOE;
+        TIM1->CR1 = TIM2->CR1 = TIM16->CR1 = TIM17->CR1 = TIM_CR1_CEN;
     }
 
     extern float power[maxCount];
     void updateOutput(unsigned motor)
     {
-        if (power[motor] > 0 and motor < (sizeof(assignTable) / sizeof(assignTable[0])))
+        if (power[motor] > 0 and
+            motor < (sizeof(assignTable) / sizeof(assignTable[0])))
             *assignTable[motor] = 1'000 + std::clamp<uint32_t>(power[motor] * 1'000, 0, 1'000);
         else
             *assignTable[motor] = 900;

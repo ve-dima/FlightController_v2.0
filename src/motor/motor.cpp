@@ -1,15 +1,11 @@
 #include "motor.hpp"
 #include "Common.hpp"
-#include "Board.hpp"
 #include <cmath>
 
 namespace Motor
 {
     State state = State::undefined;
-    // Protocol protocol = Protocol::pwm50;
-
     State getState() { return state; }
-    // Protocol getProtocol() {return protocol;}
 
     float power[maxCount];
 
@@ -49,7 +45,6 @@ namespace Motor
             updateOutput(i);
         disarmTimeStamp = millis();
         state = State::disarming;
-        debugUart.println("Disarming motor");
     }
 
     uint32_t armTimeStamp = 0;
@@ -63,7 +58,6 @@ namespace Motor
             updateOutput(i);
         armTimeStamp = millis();
         state = State::arming;
-        debugUart.println("Arming motor");
     }
 
     void stateHandler()
@@ -75,17 +69,13 @@ namespace Motor
             break;
         case State::disarming:
             if (millis() - disarmTimeStamp > disarmTime)
-            {
                 state = State::disarmed;
-                debugUart.println("Motor is disarmed");
-            }
+
             break;
         case State::arming:
             if (millis() - armTimeStamp > armTime)
-            {
                 state = State::armed;
-                debugUart.println("Motor is armed");
-            }
+
             break;
         default:
             break;

@@ -4,7 +4,6 @@
 #include "Board.hpp"
 #include "SRT/SRT.hpp"
 #include "RC.hpp"
-// #include "I-Bus.hpp"
 #include "S-Bus.hpp"
 #include "CRSF.hpp"
 
@@ -21,14 +20,19 @@ namespace RC
 
     //=================================================
 
-    uint32_t signalLoseTimeout = 1'000;
-
     int32_t _channelsAssign[static_cast<int>(ChannelFunction::__end)] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    float _minChannelValue[maxChannelCount] = {191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191},
-          _maxChannelValue[maxChannelCount] = {1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792},
+    // CRSF
+    //  float _minChannelValue[maxChannelCount] = {191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191},
+    //        _maxChannelValue[maxChannelCount] = {1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792},
+
+    // SBUS
+    float _minChannelValue[maxChannelCount] = {172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172},
+          _maxChannelValue[maxChannelCount] = {1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811},
+
           _channelDeadZone[maxChannelCount] = {5, 10, 10, 10, 10, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
           _channelIsReverse[maxChannelCount] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    ProtocolDetector _selectedProtocol = ProtocolDetector::CRSF;
+
+    ProtocolDetector _selectedProtocol = ProtocolDetector::SBUS;
 
     //=================================================
 
@@ -87,10 +91,13 @@ namespace RC
 
     void update(int16_t channels[], unsigned channelCount, uint8_t rssi, bool signalAvailable)
     {
+        if (not signalAvailable)
+            return;
+
+        _state = State::ok;
         _lastValidTimestamp = millis();
 
-        channelCount = std::min<unsigned>(maxChannelCount, channelCount);
-        _channelsCount = channelCount;
+        _channelsCount = std::min<unsigned>(maxChannelCount, channelCount);
         _rssi = rssi;
 
         for (unsigned i = 0; i < channelCount; i++)
@@ -105,55 +112,24 @@ namespace RC
 
             normalizedValue = normalizedValue * 2 - 1;
             normalizedValue = std::clamp<float>(normalizedValue, -1, 1);
+
             _channelInDZ[i] = std::abs(normalizedValue) <= (_channelDeadZone[i] * 1e-2);
             _channels[i] = normalizedValue;
             _channelsRaw[i] = channels[i];
         }
         for (unsigned i = channelCount; i < maxChannelCount; i++)
             _channels[i] = NAN;
-
-        // if ((millis() - _lastValidTimestamp) > signalLoseTimeout)
-        //     _state = State::signal_lose;
-
-        if (not signalAvailable)
-            _state = State::signal_lose;
-        else
-            _state = State::ok;
     }
 
-    uint32_t protocolProbeStart = 0;
-    static constexpr uint32_t protocolProbeTime = 100;
-
-    // IBus ibusParser;
     SBus sBusParser;
     CRSF crsfParser;
     static constexpr RC_parser *parsers[] = {
         &crsfParser,
         &sBusParser,
-        // &ibusParser, // 20 40 DB 05 DC 05 54 05 DC 05 E8 03 D0 07 D2 05 E8 03 DC 05 DC 05 DC 05 DC 05 DC 05 DC 05 DA F3
     };
 
-    // void incomingByteHandler()
-    // {
-    //     if (_selectedProtocol == ProtocolDetector::not_connected or
-    //         static_cast<int>(_selectedProtocol) >= static_cast<int>(ProtocolDetector::__end))
-    //         return;
-
-    //     int16_t ch[maxChannelCount];
-    //     unsigned channelCount;
-    //     uint8_t rssi;
-    //     bool signalAvailable;
-
-    //     if (parsers[static_cast<int>(_selectedProtocol) - 1]->parseData(RC_UART.read(), RC_UART.getParityErrorFlag(),
-    //                                                                     ch, channelCount, rssi, signalAvailable) == false)
-    //     {
-    //         RC_UART.clearParityErrorFlag();
-    //         return;
-    //     }
-    //     RC_UART.clearParityErrorFlag();
-    //     update(ch, channelCount, rssi, signalAvailable);
-    // }
-
+    // uint32_t protocolProbeStart = 0;
+    // static constexpr uint32_t protocolProbeTime = 100;
     // void protocolProbeHandler()
     // {
     //     if (_currentProtocol != ProtocolDetector::not_connected)
@@ -177,7 +153,7 @@ namespace RC
     //     case ProtocolDetector::IBUS:
     //         protocolProbe = ProtocolDetector::SBUS;
     //         RC_UART.begin(100'000,
-    //                       UART::WordLen::nine, UART::StopBit::two, UART::ParityControl::odd,
+    //                       UART::WordLen::nine, UART::StopBit::two, UART::ParityControl::even,
     //                       false, false, true);
     //         break;
     //     default:
@@ -221,19 +197,15 @@ namespace RC
     {
         checkValues();
         RC_UART.end();
-        // RC_UART.attachOnReceiveIRQ(incomingByteHandler);
 
         switch (_selectedProtocol)
         {
         case ProtocolDetector::CRSF:
             RC_UART.begin(420'000 >> 8);
             break;
-        case ProtocolDetector::IBUS:
-            RC_UART.begin((115'200 >> 8));
-            break;
         case ProtocolDetector::SBUS:
             RC_UART.begin((100'000 >> 8),
-                          UART::WordLen::nine, UART::StopBit::two, UART::ParityControl::odd,
+                          UART::WordLen::nine, UART::StopBit::two, UART::ParityControl::even,
                           false, true, true);
             break;
         default:
@@ -241,10 +213,12 @@ namespace RC
         }
     }
 
-    void handler()
+    void handler() {}
+
+    void ahrsTickHandler()
     {
-        // if ((millis() - _lastValidTimestamp) > signalLoseTimeout)
-        //     _state = State::signal_lose;
+        if ((millis() - _lastValidTimestamp) > signalLoseTimeout)
+            _state = State::signal_lose;
     }
 
     void callBackHandler()

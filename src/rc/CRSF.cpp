@@ -27,12 +27,6 @@ bool CRSF::crsf_parse(const uint8_t *frame, unsigned len, int16_t *values,
 		if (current_len == 0)
 		{
 			// CRSF_DEBUG("========== parser bug: no progress (%i) ===========", len);
-
-			for (unsigned i = 0; i < current_frame_position; ++i)
-			{
-				// CRSF_DEBUG("crsf_frame_ptr[%i]: 0x%x", i, (int)crsf_frame_ptr[i]);
-			}
-
 			// reset the parser
 			current_frame_position = 0;
 			parser_state = crsf_parser_state_t::unsynced;
@@ -97,15 +91,6 @@ uint8_t CRSF::crsf_frame_CRC(const crsf_frame_t &frame)
 
 uint16_t convert_channel_value(unsigned chan_value)
 {
-	// /*
-	//  *       RC     PWM
-	//  * min  172 ->  988us
-	//  * mid  992 -> 1500us
-	//  * max 1811 -> 2012us
-	//  */
-	// static constexpr float scale = (2012.f - 988.f) / (1811.f - 172.f);
-	// static constexpr float offset = 988.f - 172.f * scale;
-	// return (scale * chan_value) + offset;
 	return chan_value;
 }
 

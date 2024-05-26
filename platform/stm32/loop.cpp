@@ -119,6 +119,14 @@ void loop()
             mavlink_msg_param_value_send_struct(MAVLINK_COMM_0, &mavParam);
             break;
         }
+        case MAVLINK_MSG_ID_MISSION_REQUEST:
+        {
+            mavlink_mission_request_list_t req;
+            mavlink_msg_mission_request_list_decode(&msg, &req);
+
+            mavlink_msg_mission_count_send(MAVLINK_COMM_0, req.target_system, req.target_component, 0, 0, 0);
+            break;
+        }
         case MAVLINK_MSG_ID_PING:
         {
             mavlink_ping_t ping;
@@ -129,18 +137,4 @@ void loop()
         }
         }
     }
-
-    // for (static uint32_t tim = 0; millis() - tim > 50; tim = millis())
-    // {
-    //     const auto attitude = AHRS::getFRD_Attitude();
-    //     debugUart.print(attitude.w, 4);
-    //     debugUart.print(',');
-    //     debugUart.print(attitude.x, 4);
-    //     debugUart.print(',');
-    //     debugUart.print(attitude.y, 4);
-    //     debugUart.print(',');
-    //     debugUart.print(attitude.z, 4);
-    //     debugUart.println();
-    //     // debugUart.println(millis());
-    // }
 }

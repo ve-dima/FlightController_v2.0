@@ -109,27 +109,27 @@ namespace mavlink
         //                                  RC::rawChannel(17),
         //                                  RC::rssi());
 
-        // for (static uint32_t rcTimer = 0; millis() - rcTimer > (1000 / 5); rcTimer = millis())
-        //     mavlink_msg_rc_channels_send(MAVLINK_COMM_0, millis(), RC::channelCount(),
-        //                                  RC::channel(1) * 1000 + 1000,
-        //                                  RC::channel(2) * 1000 + 1000,
-        //                                  RC::channel(3) * 1000 + 1000,
-        //                                  RC::channel(4) * 1000 + 1000,
-        //                                  RC::channel(5) * 1000 + 1000,
-        //                                  RC::channel(6) * 1000 + 1000,
-        //                                  RC::channel(7) * 1000 + 1000,
-        //                                  RC::channel(8) * 1000 + 1000,
-        //                                  RC::channel(9) * 1000 + 1000,
-        //                                  RC::channel(10) * 1000 + 1000,
-        //                                  RC::channel(11) * 1000 + 1000,
-        //                                  RC::channel(12) * 1000 + 1000,
-        //                                  RC::channel(13) * 1000 + 1000,
-        //                                  RC::channel(14) * 1000 + 1000,
-        //                                  RC::channel(15) * 1000 + 1000,
-        //                                  RC::channel(16) * 1000 + 1000,
-        //                                  RC::channel(17) * 1000 + 1000,
-        //                                  RC::channel(18) * 1000 + 1000,
-        //                                  RC::rssi());
+        for (static uint32_t rcTimer = 0; millis() - rcTimer > (1000 / 5); rcTimer = millis())
+            mavlink_msg_rc_channels_send(MAVLINK_COMM_0, millis(), RC::channelCount(),
+                                         RC::channel(1) * 1000 + 1000,
+                                         RC::channel(2) * 1000 + 1000,
+                                         RC::channel(3) * 1000 + 1000,
+                                         RC::channel(4) * 1000 + 1000,
+                                         RC::channel(5) * 1000 + 1000,
+                                         RC::channel(6) * 1000 + 1000,
+                                         RC::channel(7) * 1000 + 1000,
+                                         RC::channel(8) * 1000 + 1000,
+                                         RC::channel(9) * 1000 + 1000,
+                                         RC::channel(10) * 1000 + 1000,
+                                         RC::channel(11) * 1000 + 1000,
+                                         RC::channel(12) * 1000 + 1000,
+                                         RC::channel(13) * 1000 + 1000,
+                                         RC::channel(14) * 1000 + 1000,
+                                         RC::channel(15) * 1000 + 1000,
+                                         RC::channel(16) * 1000 + 1000,
+                                         RC::channel(17) * 1000 + 1000,
+                                         RC::channel(18) * 1000 + 1000,
+                                         static_cast<uint8_t>(RC::state()));
     }
     REGISTER_SRT_MODULE(mavlink, init, enable, handler);
 }

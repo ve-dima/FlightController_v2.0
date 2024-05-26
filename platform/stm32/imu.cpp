@@ -4,6 +4,7 @@
 #include "modes/Modes.hpp"
 #include "control/Control.hpp"
 #include "SRT/SRT.hpp"
+#include "rc/RC.hpp"
 #include "Common.hpp"
 #include <algorithm>
 
@@ -49,6 +50,7 @@ namespace IMU
 
         // eigen -Og 17023
         // eigen -O3 12223
+        RC::ahrsTickHandler();
         FlightModeDispatcher::switchHandler();
         FlightModeDispatcher::attitudeTickHandler();
         Control::positionControlHandler();

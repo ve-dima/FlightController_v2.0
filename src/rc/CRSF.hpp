@@ -11,8 +11,8 @@ private:
 
     struct crsf_frame_header_t
     {
-        uint8_t device_address; ///< @see crsf_address_t
-        uint8_t length;         ///< length of crsf_frame_t (including CRC) minus sizeof(crsf_frame_header_t)
+        uint8_t device_address;
+        uint8_t length; ///< length of crsf_frame_t (including CRC) minus sizeof(crsf_frame_header_t)
     };
 
     struct crsf_frame_t
@@ -92,9 +92,9 @@ public:
     uint8_t crsf_frame_CRC(const crsf_frame_t &frame);
 
     void write_frame_header(uint8_t *buf, int &offset, crsf_frame_type_t type, uint8_t payload_size);
-    void crsf_send_telemetry_battery(uint8_t data[], uint8_t &size,uint16_t voltage, uint16_t current, int fuel, uint8_t remaining);
-    void crsf_send_telemetry_gps(uint8_t data[], uint8_t &size,int32_t latitude, int32_t longitude, uint16_t groundspeed,
+    void crsf_send_telemetry_battery(uint8_t data[], uint8_t &size, uint16_t voltage, uint16_t current, int fuel, uint8_t remaining);
+    void crsf_send_telemetry_gps(uint8_t data[], uint8_t &size, int32_t latitude, int32_t longitude, uint16_t groundspeed,
                                  uint16_t gps_heading, uint16_t altitude, uint8_t num_satellites);
-    void crsf_send_telemetry_attitude(uint8_t data[], uint8_t &size,int16_t pitch, int16_t roll, int16_t yaw);
-    void crsf_send_telemetry_flight_mode(uint8_t data[], uint8_t &size,const char *flight_mode);
+    void crsf_send_telemetry_attitude(uint8_t data[], uint8_t &size, int16_t pitch, int16_t roll, int16_t yaw);
+    void crsf_send_telemetry_flight_mode(uint8_t data[], uint8_t &size, const char *flight_mode);
 };

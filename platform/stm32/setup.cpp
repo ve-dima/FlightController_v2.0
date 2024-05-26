@@ -6,7 +6,6 @@
 
 void setup()
 {
-    // __BKPT(0);
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
     DWT->CYCCNT = 0;
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
@@ -16,7 +15,6 @@ void setup()
     SysTick_Config(F_CPU / 1'000);
 
     //========================================================================
-    // I2C1 100kHz
 
     RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN;
     RCC->APB1ENR1 |= RCC_APB1ENR1_I2C1EN;
@@ -179,7 +177,7 @@ void mavlink_send_uart_bytes(mavlink_channel_t chan, const uint8_t *ch, uint16_t
 {
     if (chan == MAVLINK_COMM_0)
         mav0Uart.write(ch, length);
-    if (chan == MAVLINK_COMM_1)
+    else if (chan == MAVLINK_COMM_1)
         mav1Uart.write(ch, length);
 }
 
@@ -187,7 +185,7 @@ void mavlink_end_uart_send(mavlink_channel_t chan, int length)
 {
     if (chan == MAVLINK_COMM_0)
         mav0Uart.startTX();
-    if (chan == MAVLINK_COMM_1)
+    else if (chan == MAVLINK_COMM_1)
         mav1Uart.startTX();
 }
 
