@@ -8,7 +8,7 @@
 #include "rc/RC.hpp"
 #include "ahrs/atmosphere.hpp"
 
-MavLinkReporter::MavLinkReporter(mavlink_channel_t channel, MavLinkProfiles::Profile &profile) : channel(channel), profile(profile) {}
+// MavLinkReporter::MavLinkReporter(mavlink_channel_t channel, MavLinkProfiles::Profile &profile) : channel(channel), profile(profile) {}
 
 void mavlink_heartbeat_report(mavlink_channel_t ch)
 {
@@ -123,3 +123,30 @@ void mavlink_rc_report(mavlink_channel_t ch)
                                  RC::rawChannel(18),
                                  RC::rssi());
 }
+
+void init() {}
+void enable() {}
+void handler()
+{
+    for (static uint32_t hearBeatTimer = 0; millis() - hearBeatTimer > 500; hearBeatTimer = millis())
+    {
+        mavlink_heartbeat_report(MAVLINK_COMM_0);
+        mavlink_rc_report(MAVLINK_COMM_0);
+    }
+
+    for (static uint32_t attTimer = 0; millis() - attTimer > 50; attTimer = millis())
+    {
+        mavlink_quat_report(MAVLINK_COMM_0);
+        // mavlink_state_report(MAVLINK_COMM_0);
+
+        const float pres = AHRS::getPressure();
+        const float heightByPressure = getAltitudeFromPressure(pres, 101'325);
+        const Eigen::Vector3f verticalState = AHRS::getZState();
+
+        mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
+                                            verticalState(0) + 1e3, verticalState(1), heightByPressure + 1e3,
+                                            Control::targetAltitude, Control::targetVelocity, Control::autoHeightTrust);
+    }
+}
+
+REGISTER_SRT_MODULE(mavlink_module, init, enable, handler);

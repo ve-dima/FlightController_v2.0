@@ -186,8 +186,10 @@ namespace Control
             return;
         }
 
-        const float velocityError = targetVelocity - AHRS::x[1],
-                    acceleration = AHRS::x[2],
+        const Eigen::Vector3f verticalState = AHRS::getZState();
+
+        const float velocityError = targetVelocity - verticalState(1),
+                    acceleration = verticalState(2),
                     dt = AHRS::getLastDT();
         autoHeightTrust = velocityPid.calculate(velocityError, acceleration, 1, dt);
     }
@@ -201,7 +203,7 @@ namespace Control
         }
 
         targetThrust = 0.5;
-        const float positionError = targetAltitude - AHRS::x[0];
+        const float positionError = targetAltitude - AHRS::getZState()(0);
         targetVelocity = positionPid.calculate(positionError, 0, 0, 0);
     }
 }

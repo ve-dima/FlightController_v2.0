@@ -18,8 +18,7 @@ Stabilize stabilizeMode;
 
 bool Stabilize::needEnter(const char *&reason)
 {
-    if (RC::channel(RC::ChannelFunction::ARMSWITCH) > 0.2 and
-        RC::channel(RC::ChannelFunction::THROTTLE) < -0.9)
+    if (RC::channel(RC::ChannelFunction::ARMSWITCH) > 0.2)
     {
         reason = "manual switch";
         return true;
@@ -117,9 +116,13 @@ void Stabilize::altMode()
     Control::trustMode = Control::TrustMode::ALTITUDE;
     if (not RC::inDZ(RC::ChannelFunction::THROTTLE))
     {
-        Control::targetAltitude = AHRS::x[0] + expo(RC::channel(RC::ChannelFunction::THROTTLE), 0.5) * altitudeSetSpeed;
-        // __BKPT(0);
+        Control::trustMode = Control::TrustMode::VELOCITY;
+        Control::targetAltitude = AHRS::getZState()(0);
+        Control::targetVelocity = expo(RC::channel(RC::ChannelFunction::THROTTLE), 0.5) * altitudeSetSpeed;
     }
+    else
+        Control::trustMode = Control::TrustMode::ALTITUDE;
+
 }
 
 void Stabilize::acroMode()

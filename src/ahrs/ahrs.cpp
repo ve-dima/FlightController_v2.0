@@ -230,8 +230,8 @@ namespace AHRS
 
     Eigen::Quaternionf getFRU_Attitude() { return attitude; }
     Eigen::Quaternionf getFRD_Attitude() { return Eigen::Quaternionf(attitude.w(), attitude.x(), attitude.y(), -attitude.z()); }
-    Eulerf getEulerFRU() { return eulerAttitude; }
-    Eulerf getEulerFRD() { return Eulerf{eulerAttitude.roll, eulerAttitude.pitch, -eulerAttitude.yaw}; }
+    Eulerf getFRD_Euler() { return eulerAttitude; }
+    Eulerf getFRU_Euler() { return Eulerf{eulerAttitude.roll, eulerAttitude.pitch, -eulerAttitude.yaw}; }
 
     Eigen::Vector3f getFRDLinearAcceleration() { return linearAcceleration; }
 
