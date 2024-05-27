@@ -15,8 +15,10 @@ namespace AHRS
     void updateByPressure(float P);
     void updateByTemperature(float T);
 
-    Eigen::Vector3f getRawRSpeed();
-    Eigen::Vector3f getRAcceleration();
+    Eigen::Vector3f getRawRotateSpeed();
+    Eigen::Vector3f getRotateSpeed();
+    Eigen::Vector3f getFRD_RotateSpeed();
+    Eigen::Vector3f getRotateAcceleration();
 
     Eigen::Vector3f getRawAcceleration();
     float getG();
@@ -24,18 +26,16 @@ namespace AHRS
     float getPressure();
     float getTemperature();
 
-    Eigen::Vector3f getRSpeed();
-    Eigen::Vector3f getFRD_RSpeed();
+    Eigen::Vector3f getMagneticField();
 
     Eigen::Quaternionf getFRU_Attitude();
     Eigen::Quaternionf getFRD_Attitude();
-    Eulerf getEulerFRU();
-    Eulerf getEulerFRD();
+    Eulerf getFRU_Euler();
+    Eulerf getFRD_Euler();
 
-    Eigen::Vector3f getLinearAcceleration();
+    Eigen::Vector3f getFRD_LinearAcceleration();
+    float getLastDT();
 
-    inline float lastDT = 0;
-    
-    extern Eigen::Vector3f x;
-    extern Eigen::Matrix3f P;
+    Eigen::Vector3f getZState();
+    Eigen::Vector3f getZVaraince();
 }

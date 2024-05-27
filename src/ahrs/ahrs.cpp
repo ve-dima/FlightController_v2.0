@@ -5,40 +5,10 @@
 #include "Common.hpp"
 #include <algorithm>
 
-Eigen::Quaternionf adaptiveSLERP_I(Eigen::Quaternionf q, float gain, const float threshold = 0.97)
-{
-    // optimize LERP and SLERP with qI(1,0,0,0)======================
-    if (q.w() < threshold)
-    {
-        // Slerp (Spherical linear interpolation):
-        float angle = std::acos(q.w());
-        float A = std::sin(angle * 1.0 - gain) / std::sin(angle);
-        float B = std::sin(angle * gain) / std::sin(angle);
-
-        q.w() = A + B * q.w();
-        q.x() = B * q.x();
-        q.y() = B * q.y();
-        q.z() = B * q.z();
-    }
-    else
-    {
-        // Lerp (Linear interpolation):
-        q.w() = (1.0 - gain) + gain * q.w();
-        q.x() = gain * q.x();
-        q.y() = gain * q.y();
-        q.z() = gain * q.z();
-    }
-
-    return q;
-}
-
 namespace AHRS
 {
     extern float gyroscopeOffset[3];
-    extern float gyroscopeRange;
-
     extern float accelerometerOffset[3];
-    extern float accelerometerRange;
 
     extern float accelerationFilterGain;
     extern float accelerationRejection;
@@ -47,12 +17,16 @@ namespace AHRS
     extern float barometerNoise;
     extern float mulka;
 
-    Eigen::Vector3f rawRSpeed, rotateSpeed;
+    float lastDt = 0;
+
+    Eigen::Vector3f rawRotateSpeed, rotateSpeed;
     Eigen::Vector3f rawAcceleration, acceleration;
+    float pressure, temperature;
+
     Eigen::Quaternionf attitude = Eigen::Quaternionf::Identity();
     Eulerf eulerAttitude;
     float G = 1;
-    float pressure, temperature;
+
     Eigen::Vector3f linearAcceleration;
 
     float pressFilter = 0;
@@ -186,8 +160,8 @@ namespace AHRS
 
     void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f rAcc, float dT)
     {
-        lastDT = dT;
-        rawRSpeed = rSpeed;
+        lastDt = dT;
+        rawRotateSpeed = rSpeed;
         rawAcceleration = rAcc;
 
         rotateSpeed = rSpeed - Eigen::Vector3f{gyroscopeOffset};
@@ -241,22 +215,28 @@ namespace AHRS
         temperature = T;
     }
 
-    Eigen::Vector3f getRawRSpeed() { return rawRSpeed; }
-    Eigen::Vector3f getRAcceleration() { return Eigen::Vector3f(0, 0, 0); }
-
-    Eigen::Vector3f getRawAcceleration() { return rawAcceleration; }
-
-    Eigen::Vector3f getRSpeed() { return rotateSpeed; }
-    Eigen::Vector3f getFRD_RSpeed() { return Eigen::Vector3f(rotateSpeed.x(), rotateSpeed.y(), -rotateSpeed.z()); }
     Eigen::Vector3f getAcceleration() { return acceleration; }
+    Eigen::Vector3f getRawAcceleration() { return rawAcceleration; }
     float getG() { return G; }
+
+    Eigen::Vector3f getRotateAcceleration() { return Eigen::Vector3f(0, 0, 0); }
+
+    Eigen::Vector3f getRawRotateSpeed() { return rawRotateSpeed; }
+    Eigen::Vector3f getRotateSpeed() { return rotateSpeed; }
+    Eigen::Vector3f getFRD_RotateSpeed() { return Eigen::Vector3f(rotateSpeed.x(), rotateSpeed.y(), -rotateSpeed.z()); }
 
     float getPressure() { return pressure; }
     float getTemperature() { return temperature; }
 
     Eigen::Quaternionf getFRU_Attitude() { return attitude; }
     Eigen::Quaternionf getFRD_Attitude() { return Eigen::Quaternionf(attitude.w(), attitude.x(), attitude.y(), -attitude.z()); }
-    Eulerf getEulerFRD() { return eulerAttitude; }
+    Eulerf getEulerFRU() { return eulerAttitude; }
+    Eulerf getEulerFRD() { return Eulerf{eulerAttitude.roll, eulerAttitude.pitch, -eulerAttitude.yaw}; }
 
-    Eigen::Vector3f getLinearAcceleration() { return linearAcceleration; }
+    Eigen::Vector3f getFRDLinearAcceleration() { return linearAcceleration; }
+
+    float getLastDT() { return lastDt; }
+
+    Eigen::Vector3f getZState() { return x; }
+    Eigen::Vector3f getZVaraince() { return Eigen::Vector3f{P(0, 0), P(1, 1), P(2, 2)}; }
 }

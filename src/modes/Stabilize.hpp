@@ -9,10 +9,6 @@
 
 class Stabilize : public FlightMode
 {
-private:
-    // uint32_t stickTimer;
-    // EulerF setAngle;
-    // bool stickWasOnCenter = false;
     float manualYawSetPoint = 0;
     Eigen::Quaternionf homeYaw;
     Eigen::Quaternionf acroSP = Eigen::Quaternionf::Identity();

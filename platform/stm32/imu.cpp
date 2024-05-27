@@ -26,11 +26,11 @@ namespace IMU
 
     void enable()
     {
+        NVIC_EnableIRQ(TIM6_DAC_IRQn);
     }
 
     void handler()
     {
-        ICM20948::handler();
     }
 
     extern "C" void TIM6_DAC_IRQHandler(void)
@@ -39,8 +39,12 @@ namespace IMU
 
         static uint32_t maxClk = 0;
         uint32_t startTime = tick();
-        ICM20948::isr();
-        BMP280::handler();
+        ICM20948::handler();
+        if (not ICM20948::magIsRead)
+            BMP280::handler();
+        else
+            ICM20948::magIsRead = false;
+
         maxClk = std::max(maxClk, tick() - startTime);
         // 11340 - empty -Og
         // 10271 - empty -O3

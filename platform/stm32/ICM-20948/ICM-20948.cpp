@@ -1,6 +1,8 @@
 #include "Common.hpp"
 #include "Board.hpp"
 #include "InvenSense_ICM20948_registers.hpp"
+#include "AKM_AK09916_registers.hpp"
+#include "ICM-20948.hpp"
 #include "ahrs/ahrs.hpp"
 
 using namespace InvenSense_ICM20948;
@@ -69,9 +71,7 @@ namespace ICM20948
         uint8_t val = (orig_val & ~clearbits) | setbits;
 
         if (orig_val != val)
-        {
             RegisterWrite(reg, val);
-        }
     }
 
     template <typename T>
@@ -82,18 +82,41 @@ namespace ICM20948
         const uint8_t reg_value = RegisterRead(reg_cfg.reg);
 
         if (reg_cfg.set_bits && ((reg_value & reg_cfg.set_bits) != reg_cfg.set_bits))
-        {
-            // PX4_DEBUG("0x%02hhX: 0x%02hhX (0x%02hhX not set)", (uint8_t)reg_cfg.reg, reg_value, reg_cfg.set_bits);
             success = false;
-        }
 
         if (reg_cfg.clear_bits && ((reg_value & reg_cfg.clear_bits) != 0))
-        {
-            // PX4_DEBUG("0x%02hhX: 0x%02hhX (0x%02hhX not cleared)", (uint8_t)reg_cfg.reg, reg_value, reg_cfg.clear_bits);
             success = false;
-        }
 
         return success;
+    }
+
+    void I2CSlaveRegisterWrite(uint8_t slave_i2c_addr, uint8_t reg, uint8_t val)
+    {
+        RegisterWrite(Register::BANK_3::I2C_SLV0_ADDR, slave_i2c_addr);
+        RegisterWrite(Register::BANK_3::I2C_SLV0_REG, reg);
+        RegisterWrite(Register::BANK_3::I2C_SLV0_DO, val);
+    }
+
+    void I2CSlaveExternalSensorDataEnable(uint8_t slave_i2c_addr, uint8_t reg, uint8_t size)
+    {
+        RegisterWrite(Register::BANK_3::I2C_SLV0_ADDR, slave_i2c_addr | I2C_SLV0_ADDR_BIT::I2C_SLV0_RNW);
+        RegisterWrite(Register::BANK_3::I2C_SLV0_REG, reg);
+        RegisterWrite(Register::BANK_3::I2C_SLV0_CTRL, size | I2C_SLV0_CTRL_BIT::I2C_SLV0_EN);
+    }
+
+    void I2CSlaveExternalSensorDataRead(uint8_t *buffer, uint8_t length)
+    {
+        SelectRegisterBank(REG_BANK_SEL_BIT::USER_BANK_0);
+
+        i2cBus.begin();
+        i2cBus.startTx(address, 1, false);
+        i2cBus.write(static_cast<uint8_t>(Register::BANK_0::EXT_SLV_SENS_DATA_00) | DIR_READ);
+        i2cBus.waitTransferComplete();
+        i2cBus.startRx(address, length);
+        for (uint8_t i = 0; i < length; i++)
+            buffer[i] = i2cBus.read();
+        i2cBus.stop();
+        i2cBus.end();
     }
 
     struct register_bank0_config_t
@@ -119,8 +142,8 @@ namespace ICM20948
 
     static constexpr register_bank0_config_t _register_bank0_cfg[] = {
         // Register                             | Set bits, Clear bits
-        {Register::BANK_0::USER_CTRL, USER_CTRL_BIT::I2C_MST_EN | USER_CTRL_BIT::DMP_EN, 0},
-        {Register::BANK_0::PWR_MGMT_1, PWR_MGMT_1_BIT::CLKSEL_0, PWR_MGMT_1_BIT::DEVICE_RESET | PWR_MGMT_1_BIT::SLEEP | PWR_MGMT_1_BIT::TEMP_DIS},
+        {Register::BANK_0::USER_CTRL, USER_CTRL_BIT::I2C_MST_EN, USER_CTRL_BIT::DMP_EN | USER_CTRL_BIT::I2C_IF_DIS | USER_CTRL_BIT::I2C_MST_RST},
+        {Register::BANK_0::PWR_MGMT_1, 0, PWR_MGMT_1_BIT::DEVICE_RESET | PWR_MGMT_1_BIT::SLEEP | PWR_MGMT_1_BIT::TEMP_DIS},
         {Register::BANK_0::INT_PIN_CFG, 0, INT_PIN_CFG_BIT::BYPASS_EN},
     };
 
@@ -130,14 +153,13 @@ namespace ICM20948
         {Register::BANK_2::ACCEL_SMPLRT_DIV_2, 0, 0},
         {Register::BANK_2::GYRO_CONFIG_1, GYRO_CONFIG_1_BIT::GYRO_FS_SEL_2000_DPS | GYRO_CONFIG_1_BIT::GYRO_DLPFCFG_36 | GYRO_CONFIG_1_BIT::GYRO_FCHOICE},
         {Register::BANK_2::ACCEL_CONFIG, ACCEL_CONFIG_BIT::ACCEL_FS_SEL_16G | ACCEL_CONFIG_BIT::ACCEL_DLPFCFG_34 | ACCEL_CONFIG_BIT::ACCEL_FCHOICE},
-        // {Register::BANK_2::GYRO_CONFIG_2, GYRO_CONFIG_2_BIT::XGYRO_CTEN | GYRO_CONFIG_2_BIT::YGYRO_CTEN | GYRO_CONFIG_2_BIT::ZGYRO_CTEN, 0},
     };
 
     static constexpr register_bank3_config_t _register_bank3_cfg[] = {
         // Register                             | Set bits, Clear bits
-        {Register::BANK_3::I2C_MST_CTRL, 0, 0},
-        {Register::BANK_3::I2C_MST_DELAY_CTRL, 0, 0},
-        {Register::BANK_3::I2C_SLV4_CTRL, 0, 0},
+        {Register::BANK_3::I2C_MST_CTRL, I2C_MST_CTRL_BIT::I2C_MST_P_NSR | I2C_MST_CTRL_BIT::I2C_MST_CLK_400_kHz, 0},
+        {Register::BANK_3::I2C_MST_DELAY_CTRL, I2C_MST_DELAY_CTRL_BIT::I2C_SLVX_DLY_EN, 0},
+        {Register::BANK_3::I2C_SLV4_CTRL, I2C_SLV4_CTRL_BIT::I2C_MST_DLY, 0},
     };
 
     constexpr float GYROSCOPE_SENSOR_MAX = 2000;                  // dps
@@ -154,10 +176,14 @@ namespace ICM20948
         RESET,
         WAIT_FOR_RESET,
         CONFIGURE,
-        FIFO_READ,
+        MAG_RESET,
+        MAG_WHOIM_REQ,
+        MAG_WAIT_WHOIM,
+        OK,
     } state{STATE::RESET};
 
-    Eigen::Vector3f gyro, accel;
+    uint32_t magnetometerTimer = 0;
+
     void isr()
     {
         DATA_seq data{};
@@ -178,10 +204,23 @@ namespace ICM20948
         std::swap(data.vec.accel.x(), data.vec.accel.y());
         std::swap(data.vec.gyro.x(), data.vec.gyro.y());
 
-        gyro = Eigen::Vector3f(data.vec.gyro.cast<float>()) * GYROSCOPE_SENSITIVITY;
-        accel = Eigen::Vector3f(data.vec.accel.cast<float>()) * ACCELEROMETER_SENSITIVITY;
-
+        Eigen::Vector3f gyro = Eigen::Vector3f(data.vec.gyro.cast<float>()) * GYROSCOPE_SENSITIVITY,
+                        accel = Eigen::Vector3f(data.vec.accel.cast<float>()) * ACCELEROMETER_SENSITIVITY;
         AHRS::updateByIMU(gyro, accel, 1 / 224.77);
+
+        if (millis() - magnetometerTimer > (1000 / 50))
+        {
+            magnetometerTimer = millis();
+            AKM_AK09916::TransferBuffer buffer{};
+            I2CSlaveExternalSensorDataRead((uint8_t *)&buffer, sizeof(buffer));
+
+            if (not(buffer.ST2 & AKM_AK09916::ST2_BIT::HOFL) and
+                buffer.ST1 & AKM_AK09916::ST1_BIT::DRDY)
+            {
+                Eigen::Vector3f mag = Eigen::Vector3f(buffer.vec.vec.cast<float>()) * AKM_AK09916::MAGNETOMETER_SENSITIVITY;
+                AHRS::updateByMagnetometer(mag);
+            }
+        }
     }
 
     void handler()
@@ -200,6 +239,7 @@ namespace ICM20948
             // PWR_MGMT_1: Device Reset
             SelectRegisterBank(REG_BANK_SEL_BIT::USER_BANK_0, true);
             RegisterWrite(Register::BANK_0::PWR_MGMT_1, PWR_MGMT_1_BIT::DEVICE_RESET);
+
             state = STATE::WAIT_FOR_RESET;
             delayTime = 100;
             break;
@@ -208,19 +248,22 @@ namespace ICM20948
         {
             SelectRegisterBank(REG_BANK_SEL_BIT::USER_BANK_0, true);
             uint8_t whoim = RegisterRead(Register::BANK_0::WHO_AM_I);
+
             // The reset value is 0x00 for all registers other than the registers below
             if ((whoim == WHOAMI) && (RegisterRead(Register::BANK_0::PWR_MGMT_1) == 0x41))
             {
-
                 // Wakeup and reset
                 RegisterSetAndClearBits(Register::BANK_0::PWR_MGMT_1, 0, PWR_MGMT_1_BIT::SLEEP);
 
                 // if reset succeeded then configure
                 state = STATE::CONFIGURE;
-                delayTime = 100;
+                delayTime = 1;
             }
             else
+            {
                 state = STATE::RESET;
+                delayTime = 100;
+            }
 
             break;
         }
@@ -252,23 +295,58 @@ namespace ICM20948
 
             if (success)
             {
-
-                // start AK09916 magnetometer (I2C aux)
-                // if (_slave_ak09916_magnetometer) {
-                // 	_slave_ak09916_magnetometer->Reset();
-                // }
-
-                // if configure succeeded then start reading from FIFO
                 SelectRegisterBank(REG_BANK_SEL_BIT::USER_BANK_0, true);
-                state = STATE::FIFO_READ;
-                delayTime = UINT32_MAX;
-                NVIC_EnableIRQ(TIM6_DAC_IRQn);
+                state = STATE::MAG_RESET;
+                delayTime = 10;
             }
             else
+            {
                 state = STATE::RESET;
+                delayTime = 10;
+            }
+
+            break;
+        }
+        case STATE::MAG_RESET:
+        {
+            // Magnetometer
+            I2CSlaveRegisterWrite(AKM_AK09916::I2C_ADDRESS_DEFAULT, (uint8_t)AKM_AK09916::Register::CNTL3, AKM_AK09916::CNTL3_BIT::SRST);
+
+            state = STATE::MAG_WHOIM_REQ;
+            delayTime = 100;
+
+            break;
+        }
+        case STATE::MAG_WHOIM_REQ:
+        {
+            // Get magnetometer whoim
+            I2CSlaveExternalSensorDataEnable(AKM_AK09916::I2C_ADDRESS_DEFAULT, (uint8_t)AKM_AK09916::Register::WIA1, 1);
+
+            state = STATE::MAG_WAIT_WHOIM;
+            delayTime = 100;
+
+            break;
+        }
+        case STATE::MAG_WAIT_WHOIM:
+        {
+            uint8_t WIA1 = 0;
+            I2CSlaveExternalSensorDataRead(&WIA1, 1);
+
+            if (WIA1 == AKM_AK09916::Company_ID)
+            {
+                I2CSlaveRegisterWrite(AKM_AK09916::I2C_ADDRESS_DEFAULT, (uint8_t)AKM_AK09916::Register::CNTL2, AKM_AK09916::CNTL2_BIT::MODE3);
+                I2CSlaveExternalSensorDataEnable(AKM_AK09916::I2C_ADDRESS_DEFAULT, (uint8_t)AKM_AK09916::Register::ST1, sizeof(AKM_AK09916::TransferBuffer));
+                state = STATE::OK;
+                delayTime = 0;
+                magnetometerTimer = millis();
+            }
+            else
+                state = STATE::MAG_RESET;
+
             break;
         }
         default:
+            isr();
             break;
         }
     }

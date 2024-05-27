@@ -2,6 +2,6 @@
 
 namespace ICM20948
 {
-    void isr();
+    inline bool magIsRead = false;
     void handler();
 };

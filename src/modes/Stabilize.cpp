@@ -18,7 +18,8 @@ Stabilize stabilizeMode;
 
 bool Stabilize::needEnter(const char *&reason)
 {
-    if (RC::channel(RC::ChannelFunction::ARMSWITCH) > 0.2)
+    if (RC::channel(RC::ChannelFunction::ARMSWITCH) > 0.2 and
+        RC::channel(RC::ChannelFunction::THROTTLE) < -0.9)
     {
         reason = "manual switch";
         return true;
@@ -32,7 +33,7 @@ void Stabilize::onEnter()
     Control::setTargetRate(Eigen::Vector3f(0, 0, 0));
     Control::setTargetAttitude(Eigen::Quaternionf::Identity());
 
-    manualYawSetPoint = AHRS::getEulerFRD().yaw;
+    manualYawSetPoint = AHRS::getFRD_Euler().yaw;
     homeYaw = Eigen::Quaternionf{std::cos(manualYawSetPoint / 2.f), 0.f, 0.f, std::sin(manualYawSetPoint / 2.f)};
 
     LED::setLED(LED::Color::green, LED::Action::double_short_blink);
@@ -67,7 +68,7 @@ Eigen::Quaternionf Stabilize::getSPFromRC()
         qRPSP = Eigen::Quaternionf::Identity();
 
     if (not RC::inDZ(RC::ChannelFunction::YAW) and RC::channel(RC::ChannelFunction::THROTTLE) > -0.9)
-        manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate;
+        manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::getLastDT() * manualYawRate;
 
     Eigen::Quaternionf qYawSP(std::cos(manualYawSetPoint / 2.f), 0.f, 0.f, std::sin(manualYawSetPoint / 2.f));
 
@@ -92,7 +93,7 @@ void Stabilize::levelMode()
         Control::setTargetThrust(getThrottleFromRC());
 
         if (not RC::inDZ(RC::ChannelFunction::YAW))
-            manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate;
+            manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::getLastDT() * manualYawRate;
     }
 
     Control::setTargetAttitude(getSPFromRC());
@@ -109,7 +110,7 @@ void Stabilize::altMode()
         Control::setTargetThrust(getThrottleFromRC());
 
         if (not RC::inDZ(RC::ChannelFunction::YAW))
-            manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::lastDT * manualYawRate;
+            manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::getLastDT() * manualYawRate;
     }
 
     Control::setTargetAttitude(getSPFromRC());

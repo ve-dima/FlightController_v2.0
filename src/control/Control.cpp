@@ -37,7 +37,7 @@ namespace Control
     float targetAltitude = 0;
     Eigen::Vector3f targetTrustVector = Eigen::Vector3f(0, 0, 0);
     Eigen::Vector3f targetRate = Eigen::Vector3f(0, 0, 0);
-    Eigen::Quaternionf targetAttitude = Eigen::Quaternionf(1, 0, 0, 0);
+    Eigen::Quaternionf targetAttitude = Eigen::Quaternionf::Identity();
 
     Eigen::Vector3f getTargetRate() { return targetRate; }
     Eigen::Quaternionf getTargetAttitude() { return targetAttitude; }
@@ -103,18 +103,6 @@ namespace Control
             outPower.array[i] = std::clamp<float>(outPower.array[i] +
                                                       targetThrust + autoHeightTrust,
                                                   minimalTrust, 1);
-
-        bool wrongVal = false;
-        for (int i = 0; i < 4; i++)
-            if (not std::isfinite(outPower.array[i]))
-                wrongVal = true;
-        if (wrongVal)
-        {
-            for (int i = 0; i < 4; i++)
-                Motor::setPower(i, NAN);
-            __BKPT(0);
-        }
-
         for (int i = 0; i < 4; i++)
             Motor::setPower(i, outPower.array[i]);
     }
@@ -123,9 +111,9 @@ namespace Control
     void rateHandler()
     {
         Eigen::Vector3f target;
-        const Eigen::Vector3f rateError = targetRate - AHRS::getFRD_RSpeed();
-        const Eigen::Vector3f rateAcc = AHRS::getRAcceleration();
-        const float dt = AHRS::lastDT;
+        const Eigen::Vector3f rateError = targetRate - AHRS::getFRD_RotateSpeed();
+        const Eigen::Vector3f rateAcc = AHRS::getRotateAcceleration();
+        const float dt = AHRS::getLastDT();
 
         for (int axis = 0; axis < 3; axis++)
         {
@@ -141,7 +129,6 @@ namespace Control
     /// Второй каскад управления - P-контроллер наклонов
     void rotateVelocityHandler()
     {
-        // return;
         Eigen::Vector3f target = targetRate;
         Eigen::Quaternionf attitude = AHRS::getFRD_Attitude();
         Eigen::Quaternionf qd = targetAttitude;
@@ -201,7 +188,7 @@ namespace Control
 
         const float velocityError = targetVelocity - AHRS::x[1],
                     acceleration = AHRS::x[2],
-                    dt = AHRS::lastDT;
+                    dt = AHRS::getLastDT();
         autoHeightTrust = velocityPid.calculate(velocityError, acceleration, 1, dt);
     }
 

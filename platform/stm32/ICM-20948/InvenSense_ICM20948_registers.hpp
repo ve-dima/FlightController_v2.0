@@ -16,8 +16,6 @@ namespace InvenSense_ICM20948
 	static constexpr uint8_t Bit6 = (1 << 6);
 	static constexpr uint8_t Bit7 = (1 << 7);
 
-	static constexpr uint8_t I2C_ADDRESS_DEFAULT = 0x68; // 0b1101000
-
 	static constexpr uint8_t DIR_READ = 0x80;
 
 	static constexpr uint8_t WHOAMI = 0xEA;

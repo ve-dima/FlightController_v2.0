@@ -1,22 +1,17 @@
-// #pragma once
-// #include "mavlink/common/mavlink.h"
+#pragma once
+#include "mavlink_profiles.hpp"
+#include "mavlink_bridge_header.hpp"
 
-// class MavLinkReporter
-// {
-// private:
-//     const mavlink_channel_t channel;
-//     const size_t maxBandwidth;
+mavlink_system_t mavlink_system = {.sysid = 81, .compid = 50};
 
-// public:
-//     struct Report
-//     {
-//         uint32_t period;
-//         void (*reporter)(mavlink_channel_t);
-//         size_t packetSize;
-//     };
-//     struct ReportProfile
-//     {
-//         Report *reports;
-//         uint8_t reportCount;
-//     };
-// };
+class MavLinkReporter
+{
+private:
+    const mavlink_channel_t channel;
+    const MavLinkProfiles::Profile &profile;
+    const unsigned profileSize;
+    const uint32_t timers[16];
+
+public:
+    MavLinkReporter(mavlink_channel_t channel, MavLinkProfiles::Profile &profile);
+};

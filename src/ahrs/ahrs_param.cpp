@@ -16,6 +16,9 @@ namespace AHRS
     float accelerationFilterGain = 0.01;
     PARAM_ADD(param::FLOAT, AHRS_ACC_GAIN, &accelerationFilterGain);
 
+    float accelerationRejection = 0.5;
+    PARAM_ADD(param::FLOAT, AHRS_ACC_RJT, &accelerationRejection);
+
     float accelerometerNoise = 0.5;
     PARAM_ADD(param::FLOAT, AHRS_ACC_NOISE, &accelerometerNoise);
 
