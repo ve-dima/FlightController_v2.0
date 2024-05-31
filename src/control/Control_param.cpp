@@ -46,7 +46,7 @@ namespace Control
                 .P = 0.08,
                 .I = 0.001,
                 .D = 0,
-                .maxICoef = 0.30,
+                .maxICoef = 0.15,
                 .max = 1,
             }}};
             
@@ -64,7 +64,7 @@ namespace Control
         .I = 0,
         .D = 0,
         .maxICoef = 0,
-        .max = 3,
+        .max = 1,
     };
 
     float minimalTrust = 0.1;

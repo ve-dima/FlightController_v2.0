@@ -10,6 +10,34 @@ void setup()
     DWT->CYCCNT = 0;
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 
+    PWR->CR5 &= ~PWR_CR5_R1MODE;
+    FLASH->ACR = (FLASH->ACR & ~FLASH_ACR_LATENCY) | FLASH_ACR_LATENCY_4WS;
+
+    RCC->PLLCFGR &= ~(RCC_PLLCFGR_PLLM |
+                      RCC_PLLCFGR_PLLN |
+                      RCC_PLLCFGR_PLLP |
+                      RCC_PLLCFGR_PLLQ |
+                      RCC_PLLCFGR_PLLR |
+                      RCC_PLLCFGR_PLLSRC);
+
+    RCC->PLLCFGR |= (0 << RCC_PLLCFGR_PLLM_Pos) |
+                    (40 << RCC_PLLCFGR_PLLN_Pos) |
+                    (2 << RCC_PLLCFGR_PLLPDIV_Pos) |
+                    (0 << RCC_PLLCFGR_PLLQ_Pos) |
+                    (0 << RCC_PLLCFGR_PLLR_Pos) |
+                    RCC_PLLCFGR_PLLSRC_HSE |
+                    RCC_PLLCFGR_PLLPEN |
+                    RCC_PLLCFGR_PLLQEN |
+                    RCC_PLLCFGR_PLLREN;
+
+    RCC->CR |= RCC_CR_HSEON;
+    while (not(RCC->CR & RCC_CR_HSERDY))
+        ;
+
+    RCC->CR |= RCC_CR_PLLON;
+    while (not(RCC->CR & RCC_CR_PLLRDY))
+        ;
+
     SystemInit();
     SystemCoreClockUpdate();
     SysTick_Config(F_CPU / 1'000);

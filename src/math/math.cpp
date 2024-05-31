@@ -43,19 +43,40 @@ Eigen::Quaternionf from2vec(const Eigen::Vector3f &u, const Eigen::Vector3f &v)
 Eigen::Quaternionf adaptiveSLERP_I(Eigen::Quaternionf q, float gain, const float threshold)
 {
     // optimize LERP and SLERP with qI(1,0,0,0)======================
-    if (q.w() < threshold)
+    // if (q.w() < threshold)
+    // {
+    //     // Slerp (Spherical linear interpolation):
+    //     float angle = std::acos(q.w());
+    //     float A = std::sin(angle * 1.0 - gain) / std::sin(angle);
+    //     float B = std::sin(angle * gain) / std::sin(angle);
+
+    //     q.w() = A + B * q.w();
+    //     q.x() = B * q.x();
+    //     q.y() = B * q.y();
+    //     q.z() = B * q.z();
+    // }
+    // else
+    // {
+    //     // Lerp (Linear interpolation):
+    //     q.w() = (1.0 - gain) + gain * q.w();
+    //     q.x() = gain * q.x();
+    //     q.y() = gain * q.y();
+    //     q.z() = gain * q.z();
+    // }
+
+    // return q;
+
+        if (q.w() < 0.0)  // 0.9
     {
         // Slerp (Spherical linear interpolation):
-        float angle = std::acos(q.w());
-        float A = std::sin(angle * 1.0 - gain) / std::sin(angle);
-        float B = std::sin(angle * gain) / std::sin(angle);
-
+        float angle = acos(q.w());
+        float A = sin(angle * (1.0 - gain)) / sin(angle);
+        float B = sin(angle * gain) / sin(angle);
         q.w() = A + B * q.w();
         q.x() = B * q.x();
         q.y() = B * q.y();
         q.z() = B * q.z();
-    }
-    else
+    } else
     {
         // Lerp (Linear interpolation):
         q.w() = (1.0 - gain) + gain * q.w();
@@ -64,5 +85,5 @@ Eigen::Quaternionf adaptiveSLERP_I(Eigen::Quaternionf q, float gain, const float
         q.z() = gain * q.z();
     }
 
-    return q;
+    return q.normalized();
 }

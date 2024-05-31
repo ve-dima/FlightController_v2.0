@@ -101,7 +101,7 @@ namespace Control
 
         for (int i = 0; i < 4; i++)
             outPower.array[i] = std::clamp<float>(outPower.array[i] +
-                                                      targetThrust + autoHeightTrust,
+                                                      std::clamp<float>(targetThrust + std::clamp<float>(autoHeightTrust, -0.5, 0.5), 0.1, 0.85),
                                                   minimalTrust, 1);
         for (int i = 0; i < 4; i++)
             Motor::setPower(i, outPower.array[i]);
@@ -118,7 +118,7 @@ namespace Control
         for (int axis = 0; axis < 3; axis++)
         {
             float iReduceFactor = 1 - (rateError[axis] * rateError[axis]) / iReducerMaxRate;
-            if (iReduceFactor < 0 or targetThrust < 0.1)
+            if (iReduceFactor < 0 or targetThrust < minimalTrust)
                 iReduceFactor = 0;
             target[axis] = ratePid.pids[axis].calculate(rateError[axis], rateAcc[axis], iReduceFactor, dt);
         }
@@ -196,6 +196,8 @@ namespace Control
 
     void positionControlHandler()
     {
+        return;
+
         if (trustMode != TrustMode::ALTITUDE)
         {
             targetVelocity = 0;

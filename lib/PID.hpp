@@ -36,10 +36,10 @@ public:
      */
     type_t calculate(const type_t error, const type_t change, const float integralReducerFactor = 1, const float dt = 1)
     {
-        integral += error * settings.I * integralReducerFactor;
+        integral += error * settings.I;
         const type_t pPart = error * settings.P;
         const type_t dPart = change * settings.D;
-        integral = std::clamp(integral, -settings.maxICoef, settings.maxICoef);
+        integral = std::clamp(integral, -settings.maxICoef, settings.maxICoef) * integralReducerFactor;
 
         output = pPart + integral - dPart;
         output = std::clamp(output, -settings.max, settings.max);

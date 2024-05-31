@@ -112,20 +112,9 @@ namespace AKM_AK09916
 		SRST = Bit0,
 	};
 
-	union TransferBuffer
+	struct TransferBuffer
 	{
-		struct
-		{
-			uint8_t padding;
-			Eigen::Vector3<int16_t> vec;
-		} vec;
-
-		struct arr_t
-		{
-			uint8_t padding;
-			std::array<int16_t, 3> arr;
-		} arr;
-
+		
 		uint8_t ST1;
 		uint8_t HXL;
 		uint8_t HXH;

@@ -13,14 +13,23 @@ namespace AHRS
     extern float accelerationFilterGain;
     extern float accelerationRejection;
 
+    extern float magnetometerFilterGain;
+    extern float magnetometerMaximum[3], magnetometerMinimum[3];
+
+    extern float baroSpeedCoef;
+    extern float baroPosCoef;
+
     extern float accelerometerNoise;
     extern float barometerNoise;
     extern float mulka;
 
     float lastDt = 0;
 
+    float lastBaroPos = 0, baroDt = 0;
+
     Eigen::Vector3f rawRotateSpeed, rotateSpeed;
     Eigen::Vector3f rawAcceleration, acceleration;
+    Eigen::Vector3f rawMagneticField;
     float pressure, temperature;
 
     Eigen::Quaternionf attitude = Eigen::Quaternionf::Identity();
@@ -47,6 +56,7 @@ namespace AHRS
             x[2],
         };
         x = newX;
+        // baroDt += dt;
 
         const Eigen::Matrix3f newP{
             {
@@ -73,8 +83,17 @@ namespace AHRS
     void correctPos(float z,
                     const float R)
     {
-        pressFilter = (1 - 0.01) * pressFilter + 0.01 * z;
-        z = pressFilter;
+        // pressFilter = (1 - 0.01) * pressFilter + 0.01 * z;
+        // z = pressFilter;
+
+        // const float vel = (lastBaroPos - z) / baroDt;
+        // baroDt = 0;
+        // lastBaroPos = z;
+
+        // if (std::isfinite(z))
+        //     x[0] = x[0] * (1 - baroPosCoef) + baroPosCoef * z;
+        // if (std::isfinite(vel))
+        //     x[1] = x[1] * (1 - baroSpeedCoef) + baroSpeedCoef * vel;
 
         const float S = P(0, 0) + R;
         const float y = x(0) - z;
@@ -137,6 +156,8 @@ namespace AHRS
             },
         };
         P = newP;
+
+        // x(2) = z;
     }
 
     void update()
@@ -196,11 +217,37 @@ namespace AHRS
         update();
         correctAcc(linearAcceleration.z(),
                    accelerometerNoise * accelerometerNoise);
+        // correctAcc(linearAcceleration.z(), 0);
         predictKalman(dT);
     }
 
     void updateByMagnetometer(Eigen::Vector3f field)
     {
+        rawMagneticField = field;
+        for (int i = 0; i < 3; i++)
+        {
+            const float radius = (magnetometerMaximum[i] - magnetometerMinimum[i]) / 2;
+            field(i) = (field(i) - (magnetometerMinimum[i] + radius)) / radius;
+        }
+        // field.normalize();
+
+        const Eigen::Quaternionf current = attitude;
+        Eigen::Quaternionf worldFrameMag = (current.conjugate() *
+                                            Eigen::Quaternionf(0.f, field.x(), field.y(), field.z())) *
+                                           current;
+
+        const float gamma = worldFrameMag.x() * worldFrameMag.x() + worldFrameMag.y() * worldFrameMag.y();
+        const float beta = std::sqrt(gamma + worldFrameMag.x() * std::sqrt(gamma));
+
+        Eigen::Quaternionf magDeltaQ{
+            beta / (std::sqrt(2.0 * gamma)),
+            0.0,
+            0.0,
+            worldFrameMag.y() / (std::sqrt(2.0) * beta),
+        };
+        magDeltaQ = adaptiveSLERP_I(magDeltaQ, magnetometerFilterGain);
+        if (magDeltaQ.coeffs().allFinite())
+            attitude = (current * magDeltaQ).normalized();
     }
 
     void updateByPressure(float P)
@@ -208,6 +255,7 @@ namespace AHRS
         pressure = P;
         correctPos(getAltitudeFromPressure(pressure, 101'325),
                    barometerNoise * barometerNoise);
+        // correctPos(getAltitudeFromPressure(pressure, 101'325), 0);
     }
 
     void updateByTemperature(float T)
@@ -228,15 +276,17 @@ namespace AHRS
     float getPressure() { return pressure; }
     float getTemperature() { return temperature; }
 
+    Eigen::Vector3f getMagneticField() { return rawMagneticField; }
+
     Eigen::Quaternionf getFRU_Attitude() { return attitude; }
     Eigen::Quaternionf getFRD_Attitude() { return Eigen::Quaternionf(attitude.w(), attitude.x(), attitude.y(), -attitude.z()); }
     Eulerf getFRD_Euler() { return eulerAttitude; }
     Eulerf getFRU_Euler() { return Eulerf{eulerAttitude.roll, eulerAttitude.pitch, -eulerAttitude.yaw}; }
 
-    Eigen::Vector3f getFRDLinearAcceleration() { return linearAcceleration; }
+    Eigen::Vector3f getFRD_LinearAcceleration() { return linearAcceleration; }
 
     float getLastDT() { return lastDt; }
 
     Eigen::Vector3f getZState() { return x; }
-    Eigen::Vector3f getZVaraince() { return Eigen::Vector3f{P(0, 0), P(1, 1), P(2, 2)}; }
+    // Eigen::Vector3f getZVaraince() { return Eigen::Vector3f{P(0, 0), P(1, 1), P(2, 2)}; }
 }

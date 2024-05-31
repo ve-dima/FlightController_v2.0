@@ -16,13 +16,16 @@ namespace AHRS
     float accelerationFilterGain = 0.01;
     PARAM_ADD(param::FLOAT, AHRS_ACC_GAIN, &accelerationFilterGain);
 
-    float accelerationRejection = 0.5;
+    float accelerationRejection = 0.7;
     PARAM_ADD(param::FLOAT, AHRS_ACC_RJT, &accelerationRejection);
+
+    float magnetometerFilterGain = 0.01;
+    PARAM_ADD(param::FLOAT, AHRS_MAG_GAIN, &magnetometerFilterGain);
 
     float accelerometerNoise = 0.5;
     PARAM_ADD(param::FLOAT, AHRS_ACC_NOISE, &accelerometerNoise);
 
-    float barometerNoise = 2;
+    float barometerNoise = 1;
     PARAM_ADD(param::FLOAT, AHRS_BARO_NOISE, &barometerNoise);
 
     float mulka = 1;
@@ -43,4 +46,27 @@ namespace AHRS
     PARAM_ADD_WITH_CALLBACK(param::FLOAT, AHRS_POS_Q, &q1, s);
     PARAM_ADD_WITH_CALLBACK(param::FLOAT, AHRS_SPD_Q, &q2, s);
     PARAM_ADD_WITH_CALLBACK(param::FLOAT, AHRS_ACC_Q, &q3, s);
+
+    float baroSpeedCoef = 0.01;
+    float baroPosCoef = 0.01;
+    PARAM_ADD(param::FLOAT, AHRS_BARO_SPD, &baroSpeedCoef);
+    PARAM_ADD(param::FLOAT, AHRS_BARO_POS, &baroPosCoef);
+
+    float
+        magnetometerMaximum[3] = {
+            54,
+            20,
+            47,
+    },
+        magnetometerMinimum[3] = {
+            -30,
+            -60,
+            -33,
+    };
+    PARAM_ADD(param::FLOAT, CAL_MAG_XMAX, &magnetometerMaximum[0]);
+    PARAM_ADD(param::FLOAT, CAL_MAG_YMAX, &magnetometerMaximum[1]);
+    PARAM_ADD(param::FLOAT, CAL_MAG_ZMAX, &magnetometerMaximum[2]);
+    PARAM_ADD(param::FLOAT, CAL_MAG_XMIN, &magnetometerMinimum[0]);
+    PARAM_ADD(param::FLOAT, CAL_MAG_YMIN, &magnetometerMinimum[1]);
+    PARAM_ADD(param::FLOAT, CAL_MAG_ZMIN, &magnetometerMinimum[2]);
 }

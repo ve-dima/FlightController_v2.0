@@ -152,7 +152,7 @@ namespace ICM20948
         {Register::BANK_2::GYRO_SMPLRT_DIV, 0, 0},
         {Register::BANK_2::ACCEL_SMPLRT_DIV_2, 0, 0},
         {Register::BANK_2::GYRO_CONFIG_1, GYRO_CONFIG_1_BIT::GYRO_FS_SEL_2000_DPS | GYRO_CONFIG_1_BIT::GYRO_DLPFCFG_36 | GYRO_CONFIG_1_BIT::GYRO_FCHOICE},
-        {Register::BANK_2::ACCEL_CONFIG, ACCEL_CONFIG_BIT::ACCEL_FS_SEL_16G | ACCEL_CONFIG_BIT::ACCEL_DLPFCFG_34 | ACCEL_CONFIG_BIT::ACCEL_FCHOICE},
+        {Register::BANK_2::ACCEL_CONFIG, ACCEL_CONFIG_BIT::ACCEL_FS_SEL_16G | ACCEL_CONFIG_BIT::ACCEL_DLPFCFG_8 | ACCEL_CONFIG_BIT::ACCEL_FCHOICE},
     };
 
     static constexpr register_bank3_config_t _register_bank3_cfg[] = {
@@ -215,11 +215,17 @@ namespace ICM20948
             I2CSlaveExternalSensorDataRead((uint8_t *)&buffer, sizeof(buffer));
 
             if (not(buffer.ST2 & AKM_AK09916::ST2_BIT::HOFL) and
-                buffer.ST1 & AKM_AK09916::ST1_BIT::DRDY)
+                (buffer.ST1 & AKM_AK09916::ST1_BIT::DRDY))
             {
-                Eigen::Vector3f mag = Eigen::Vector3f(buffer.vec.vec.cast<float>()) * AKM_AK09916::MAGNETOMETER_SENSITIVITY;
+                Eigen::Vector3f mag{
+                    -float(int16_t(buffer.HYL | (buffer.HYH << 8))),
+                    float(int16_t(buffer.HXL | (buffer.HXH << 8))),
+                    -float(int16_t(buffer.HZL | (buffer.HZH << 8))),
+                };
+                mag *= AKM_AK09916::MAGNETOMETER_SENSITIVITY;
                 AHRS::updateByMagnetometer(mag);
             }
+            // I2CSlaveExternalSensorDataEnable(AKM_AK09916::I2C_ADDRESS_DEFAULT, (uint8_t)AKM_AK09916::Register::ST1, sizeof(AKM_AK09916::TransferBuffer));
         }
     }
 
@@ -335,6 +341,8 @@ namespace ICM20948
             if (WIA1 == AKM_AK09916::Company_ID)
             {
                 I2CSlaveRegisterWrite(AKM_AK09916::I2C_ADDRESS_DEFAULT, (uint8_t)AKM_AK09916::Register::CNTL2, AKM_AK09916::CNTL2_BIT::MODE3);
+                // delay(5);
+                // for()
                 I2CSlaveExternalSensorDataEnable(AKM_AK09916::I2C_ADDRESS_DEFAULT, (uint8_t)AKM_AK09916::Register::ST1, sizeof(AKM_AK09916::TransferBuffer));
                 state = STATE::OK;
                 delayTime = 0;

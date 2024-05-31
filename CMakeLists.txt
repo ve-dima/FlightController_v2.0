@@ -7,8 +7,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
 set(CXX_CF 
-        -Og
-        # -O2
+        # -Og
+        -O2
         -g -gdwarf-2
         -Wall
         -Werror
@@ -26,7 +26,7 @@ target_compile_definitions(mavlink INTERFACE
         MAVLINK_NO_SIGN_PACKET
         MAVLINK_NO_SIGNATURE_CHECK
         MAVLINK_USE_CONVENIENCE_FUNCTIONS
-        MAVLINK_COMM_NUM_BUFFERS=4
+        MAVLINK_COMM_NUM_BUFFERS=2
 )
 
 project(lwrb)

@@ -113,15 +113,8 @@ void Stabilize::altMode()
     }
 
     Control::setTargetAttitude(getSPFromRC());
-    Control::trustMode = Control::TrustMode::ALTITUDE;
-    if (not RC::inDZ(RC::ChannelFunction::THROTTLE))
-    {
-        Control::trustMode = Control::TrustMode::VELOCITY;
-        Control::targetAltitude = AHRS::getZState()(0);
-        Control::targetVelocity = expo(RC::channel(RC::ChannelFunction::THROTTLE), 0.5) * altitudeSetSpeed;
-    }
-    else
-        Control::trustMode = Control::TrustMode::ALTITUDE;
+    Control::trustMode = Control::TrustMode::VELOCITY;
+    Control::setTargetThrust(getThrottleFromRC());
 
 }
 

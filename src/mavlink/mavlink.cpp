@@ -128,24 +128,26 @@ void init() {}
 void enable() {}
 void handler()
 {
-    for (static uint32_t hearBeatTimer = 0; millis() - hearBeatTimer > 500; hearBeatTimer = millis())
+    for (static uint32_t hearBeatTimer = 0; millis() - hearBeatTimer > 50; hearBeatTimer = millis())
     {
         mavlink_heartbeat_report(MAVLINK_COMM_0);
         mavlink_rc_report(MAVLINK_COMM_0);
     }
 
-    for (static uint32_t attTimer = 0; millis() - attTimer > 50; attTimer = millis())
+    for (static uint32_t attTimer = 0; millis() - attTimer > 100; attTimer = millis())
     {
-        mavlink_quat_report(MAVLINK_COMM_0);
+        // mavlink_quat_report(MAVLINK_COMM_0);
         // mavlink_state_report(MAVLINK_COMM_0);
 
         const float pres = AHRS::getPressure();
         const float heightByPressure = getAltitudeFromPressure(pres, 101'325);
         const Eigen::Vector3f verticalState = AHRS::getZState();
+        const auto acc = AHRS::getMagneticField();
 
         mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, millis(),
-                                            verticalState(0) + 1e3, verticalState(1), heightByPressure + 1e3,
-                                            Control::targetAltitude, Control::targetVelocity, Control::autoHeightTrust);
+                                            verticalState(0), verticalState(1), heightByPressure,
+                                            acc(0), acc(1), acc(2));
+        mavlink_quat_report(MAVLINK_COMM_0);
     }
 }
 
