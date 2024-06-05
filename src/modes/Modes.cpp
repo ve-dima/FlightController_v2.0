@@ -39,19 +39,12 @@ void FlightMode::onExit() {}
 
 #include "Disarm.hpp"
 #include "Stabilize.hpp"
-// #include "GyroscopeOffsetCalibrate.hpp"
-// #include "Direct.hpp"
-// #include "Fault.hpp"
 
 namespace FlightModeDispatcher
 {
-    static constexpr FlightMode *const modes[] =
-        {
-            &disarmMode,
-            // &faultMode,
-            &stabilizeMode,
-            // &gyroscopeOffsetCalibrateMode,
-            // &directMode,
+    static constexpr FlightMode *const modes[] = {
+        &disarmMode,
+        &stabilizeMode,
     };
     static constexpr uint8_t flightModesCount = sizeof(modes) / sizeof(modes[0]);
 
@@ -100,7 +93,7 @@ namespace FlightModeDispatcher
         printer.print(currentFlightMode->name());
         printer.print(" -> ");
         printer.println(fm->name());
-        
+
         if (enterReason)
             printer.print("Reason: "),
                 printer.println(enterReason);
@@ -120,7 +113,7 @@ namespace FlightModeDispatcher
                 if (not i->needEnter(enterReason))
                     continue;
 
-                printSwitchInfo(debugUart, i, enterReason);
+                // printSwitchInfo(debugUart, i, enterReason);
 
                 forceChangeMode(i);
                 break;
@@ -156,12 +149,13 @@ namespace FlightModeDispatcher
             currentFlightMode->attitudeTickHandler();
     }
 
-    void init(){}
-    void enable(){}
+    void init() {}
+    void enable() {}
     void h()
     {
         switchHandler();
         handler();
     }
+
     REGISTER_SRT_MODULE(flightModeDispatcher, init, enable, h);
 }

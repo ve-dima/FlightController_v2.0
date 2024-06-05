@@ -46,7 +46,7 @@ Eigen::Quaternionf adaptiveSLERP_I(Eigen::Quaternionf q, float gain, const float
     // if (q.w() < threshold)
     // {
     //     // Slerp (Spherical linear interpolation):
-    //     float angle = std::acos(q.w());
+    //     float angle = std::std::acos(q.w());
     //     float A = std::sin(angle * 1.0 - gain) / std::sin(angle);
     //     float B = std::sin(angle * gain) / std::sin(angle);
 
@@ -69,9 +69,9 @@ Eigen::Quaternionf adaptiveSLERP_I(Eigen::Quaternionf q, float gain, const float
         if (q.w() < 0.0)  // 0.9
     {
         // Slerp (Spherical linear interpolation):
-        float angle = acos(q.w());
-        float A = sin(angle * (1.0 - gain)) / sin(angle);
-        float B = sin(angle * gain) / sin(angle);
+        float angle = std::acos(q.w());
+        float A = std::sin(angle * (1.0 - gain)) / std::sin(angle);
+        float B = std::sin(angle * gain) / std::sin(angle);
         q.w() = A + B * q.w();
         q.x() = B * q.x();
         q.y() = B * q.y();

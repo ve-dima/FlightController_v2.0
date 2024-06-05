@@ -18,9 +18,10 @@ Stabilize stabilizeMode;
 
 bool Stabilize::needEnter(const char *&reason)
 {
-    if (RC::channel(RC::ChannelFunction::ARMSWITCH) > 0.2)
+    if (RC::channel(RC::ChannelFunction::ARMSWITCH) > 0.2 and
+        RC::channel(RC::ChannelFunction::THROTTLE) < -0.9)
     {
-        reason = "manual switch";
+        reason = "Manual switch";
         return true;
     }
     return false;
@@ -43,8 +44,6 @@ void Stabilize::attitudeTickHandler()
 {
     if (RC::channel(RC::ChannelFunction::AUX_1) < -0.9)
         levelMode();
-    else if (RC::channel(RC::ChannelFunction::AUX_1) > 0.9)
-        levelMode();
     else
         altMode();
 }
@@ -66,7 +65,8 @@ Eigen::Quaternionf Stabilize::getSPFromRC()
     else
         qRPSP = Eigen::Quaternionf::Identity();
 
-    if (not RC::inDZ(RC::ChannelFunction::YAW) and RC::channel(RC::ChannelFunction::THROTTLE) > -0.9)
+    if (not RC::inDZ(RC::ChannelFunction::YAW) and
+        RC::channel(RC::ChannelFunction::THROTTLE) > -0.9)
         manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::getLastDT() * manualYawRate;
 
     Eigen::Quaternionf qYawSP(std::cos(manualYawSetPoint / 2.f), 0.f, 0.f, std::sin(manualYawSetPoint / 2.f));
@@ -115,7 +115,6 @@ void Stabilize::altMode()
     Control::setTargetAttitude(getSPFromRC());
     Control::trustMode = Control::TrustMode::VELOCITY;
     Control::setTargetThrust(getThrottleFromRC());
-
 }
 
 void Stabilize::acroMode()

@@ -22,10 +22,19 @@ namespace IMU
 
         NVIC_DisableIRQ(TIM6_DAC_IRQn);
         NVIC_SetPriority(TIM6_DAC_IRQn, 2);
+
+        RCC->AHB2ENR |= RCC_AHB2ENR_GPIOCEN;
+        GPIOC->MODER &= ~(GPIO_MODER_MODE13);
+        GPIOC->MODER |= GPIO_MODER_MODE13_0;
+        GPIOC->BSRR = GPIO_BSRR_BS13;
     }
 
     void enable()
     {
+        GPIOC->BSRR = GPIO_BSRR_BS13;
+        delay(300);
+        GPIOC->BSRR = GPIO_BSRR_BR13;
+
         NVIC_EnableIRQ(TIM6_DAC_IRQn);
     }
 
@@ -37,23 +46,12 @@ namespace IMU
     {
         TIM6->SR = ~TIM_SR_UIF;
 
-        static uint32_t maxClk = 0;
-        uint32_t startTime = tick();
         ICM20948::handler();
         if (not ICM20948::magIsRead)
             BMP280::handler();
         else
             ICM20948::magIsRead = false;
 
-        maxClk = std::max(maxClk, tick() - startTime);
-        // 11340 - empty -Og
-        // 10271 - empty -O3
-
-        // 14583 - my lib -Og
-        // . - my lib -O3
-
-        // eigen -Og 17023
-        // eigen -O3 12223
         RC::ahrsTickHandler();
         FlightModeDispatcher::switchHandler();
         FlightModeDispatcher::attitudeTickHandler();

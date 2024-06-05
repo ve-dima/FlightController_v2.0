@@ -155,19 +155,126 @@ void paramToMavParam(param::paramVarId_t &param, mavlink_param_value_t &mP)
     mP = mavParam.param;
 }
 
+void parseMavlinkMessage(const mavlink_message_t &msg)
+{
+    switch (msg.msgid)
+    {
+    case MAVLINK_MSG_ID_PROTOCOL_VERSION:
+    {
+        mavlink_msg_protocol_version_send(MAVLINK_COMM_0,
+                                          MAVLINK_VERSION * 100, 100, 200, nullptr, nullptr);
+        break;
+    }
+    case MAVLINK_MSG_ID_PARAM_REQUEST_LIST:
+    {
+        for (unsigned i = 0; i < param::getParamCount(); i++)
+        {
+            param::paramVarId_t p;
+            param::getParamByIndex(i, p);
+
+            mavlink_param_value_t mavParam;
+            paramToMavParam(p, mavParam);
+
+            mavlink_msg_param_value_send_struct(MAVLINK_COMM_0, &mavParam);
+        }
+        break;
+    }
+    case MAVLINK_MSG_ID_PARAM_REQUEST_READ:
+    {
+        mavlink_param_request_read_t readReq;
+        mavlink_msg_param_request_read_decode(&msg, &readReq);
+        if (readReq.target_component != mavlink_system.compid or
+            readReq.target_system != mavlink_system.sysid)
+            break;
+
+        if (readReq.param_index == -1)
+        {
+            param::paramVarId_t p;
+            if (not param::getParamByName(readReq.param_id, p))
+                break;
+
+            mavlink_param_value_t mavParam;
+            paramToMavParam(p, mavParam);
+
+            mavlink_msg_param_value_send_struct(MAVLINK_COMM_0, &mavParam);
+        }
+        else if (readReq.param_index < int(param::getParamCount()))
+        {
+            param::paramVarId_t p;
+            if (not param::getParamByIndex(readReq.param_index, p))
+                break;
+
+            mavlink_param_value_t mavParam;
+            paramToMavParam(p, mavParam);
+
+            mavlink_msg_param_value_send_struct(MAVLINK_COMM_0, &mavParam);
+        }
+        break;
+    }
+    case MAVLINK_MSG_ID_PARAM_SET:
+    {
+        mavlink_param_set_t setReq;
+        mavlink_msg_param_set_decode(&msg, &setReq);
+        if (setReq.target_component != mavlink_system.compid or
+            setReq.target_system != mavlink_system.sysid)
+            break;
+
+        if (setReq.param_type != MAV_PARAM_TYPE_INT32 and
+            setReq.param_type != MAV_PARAM_TYPE_REAL32)
+            break;
+
+        param::paramVarId_t p;
+        if (not param::getParamByName(setReq.param_id, p))
+            break;
+        param::updateParamByPtr(&setReq.param_value, p.ptr);
+
+        mavlink_param_value_t mavParam;
+        paramToMavParam(p, mavParam);
+
+        mavlink_msg_param_value_send_struct(MAVLINK_COMM_0, &mavParam);
+        break;
+    }
+    case MAVLINK_MSG_ID_MISSION_REQUEST:
+    {
+        mavlink_mission_request_list_t req;
+        mavlink_msg_mission_request_list_decode(&msg, &req);
+
+        mavlink_msg_mission_count_send(MAVLINK_COMM_0, req.target_system, req.target_component, 0, 0, 0);
+        break;
+    }
+    case MAVLINK_MSG_ID_PING:
+    {
+        mavlink_ping_t ping;
+        mavlink_msg_ping_decode(&msg, &ping);
+        if (ping.target_system == 0 && ping.target_component == 0)
+            mavlink_msg_ping_send(MAVLINK_COMM_0, ping.seq, msg.sysid, msg.compid, millis());
+        break;
+    }
+    }
+}
+
 void init() {}
 void enable() {}
 void handler()
 {
     for (static uint32_t hearBeatTimer = 0; millis() - hearBeatTimer > 1'000; hearBeatTimer = millis())
-        mavlink_heartbeat_report(MAVLINK_COMM_0),
-            mavlink_pressure_report(MAVLINK_COMM_0);
+    {
+        mavlink_heartbeat_report(MAVLINK_COMM_0);
+        mavlink_pressure_report(MAVLINK_COMM_0);
+
+        mavlink_heartbeat_report(MAVLINK_COMM_1);
+        mavlink_pressure_report(MAVLINK_COMM_1);
+    }
 
     for (static uint32_t attitudeTimer = 0; millis() - attitudeTimer > 50; attitudeTimer = millis())
     {
         mavlink_quat_report(MAVLINK_COMM_0);
         mavlink_euler_report(MAVLINK_COMM_0);
-        // mavlink_state_report(MAVLINK_COMM_0);
+        mavlink_state_report(MAVLINK_COMM_0);
+
+        mavlink_quat_report(MAVLINK_COMM_1);
+        mavlink_euler_report(MAVLINK_COMM_1);
+        mavlink_state_report(MAVLINK_COMM_1);
 
         // const float pres = AHRS::getPressure();
         // const float heightByPressure = getAltitudeFromPressure(pres, 101'325);
@@ -181,7 +288,7 @@ void handler()
     }
 
     for (static uint32_t rcTimer = 0; millis() - rcTimer > 100; rcTimer = millis())
-        mavlink_rc_report(MAVLINK_COMM_0);
+        mavlink_rc_report(MAVLINK_COMM_0), mavlink_rc_report(MAVLINK_COMM_1);
 
     while (mav0Uart.available())
     {
@@ -189,101 +296,16 @@ void handler()
         mavlink_status_t status = {0};
         if (mavlink_parse_char(MAVLINK_COMM_0, mav0Uart.read(), &msg, &status) != MAVLINK_FRAMING_OK)
             continue;
+        parseMavlinkMessage(msg);
+    }
 
-        switch (msg.msgid)
-        {
-        case MAVLINK_MSG_ID_PROTOCOL_VERSION:
-        {
-            mavlink_msg_protocol_version_send(MAVLINK_COMM_0,
-                                              MAVLINK_VERSION * 100, 100, 200, nullptr, nullptr);
-            break;
-        }
-        case MAVLINK_MSG_ID_PARAM_REQUEST_LIST:
-        {
-            for (unsigned i = 0; i < param::getParamCount(); i++)
-            {
-                param::paramVarId_t p;
-                param::getParamByIndex(i, p);
-
-                mavlink_param_value_t mavParam;
-                paramToMavParam(p, mavParam);
-
-                mavlink_msg_param_value_send_struct(MAVLINK_COMM_0, &mavParam);
-            }
-            break;
-        }
-        case MAVLINK_MSG_ID_PARAM_REQUEST_READ:
-        {
-            mavlink_param_request_read_t readReq;
-            mavlink_msg_param_request_read_decode(&msg, &readReq);
-            if (readReq.target_component != mavlink_system.compid or
-                readReq.target_system != mavlink_system.sysid)
-                break;
-
-            if (readReq.param_index == -1)
-            {
-                param::paramVarId_t p;
-                if (not param::getParamByName(readReq.param_id, p))
-                    break;
-
-                mavlink_param_value_t mavParam;
-                paramToMavParam(p, mavParam);
-
-                mavlink_msg_param_value_send_struct(MAVLINK_COMM_0, &mavParam);
-            }
-            else if (readReq.param_index < int(param::getParamCount()))
-            {
-                param::paramVarId_t p;
-                if (not param::getParamByIndex(readReq.param_index, p))
-                    break;
-
-                mavlink_param_value_t mavParam;
-                paramToMavParam(p, mavParam);
-
-                mavlink_msg_param_value_send_struct(MAVLINK_COMM_0, &mavParam);
-            }
-            break;
-        }
-        case MAVLINK_MSG_ID_PARAM_SET:
-        {
-            mavlink_param_set_t setReq;
-            mavlink_msg_param_set_decode(&msg, &setReq);
-            if (setReq.target_component != mavlink_system.compid or
-                setReq.target_system != mavlink_system.sysid)
-                break;
-
-            if (setReq.param_type != MAV_PARAM_TYPE_INT32 and
-                setReq.param_type != MAV_PARAM_TYPE_REAL32)
-                break;
-
-            param::paramVarId_t p;
-            if (not param::getParamByName(setReq.param_id, p))
-                break;
-            param::updateParamByPtr(&setReq.param_value, p.ptr);
-
-            mavlink_param_value_t mavParam;
-            paramToMavParam(p, mavParam);
-
-            mavlink_msg_param_value_send_struct(MAVLINK_COMM_0, &mavParam);
-            break;
-        }
-        case MAVLINK_MSG_ID_MISSION_REQUEST:
-        {
-            mavlink_mission_request_list_t req;
-            mavlink_msg_mission_request_list_decode(&msg, &req);
-
-            mavlink_msg_mission_count_send(MAVLINK_COMM_0, req.target_system, req.target_component, 0, 0, 0);
-            break;
-        }
-        case MAVLINK_MSG_ID_PING:
-        {
-            mavlink_ping_t ping;
-            mavlink_msg_ping_decode(&msg, &ping);
-            if (ping.target_system == 0 && ping.target_component == 0)
-                mavlink_msg_ping_send(MAVLINK_COMM_0, ping.seq, msg.sysid, msg.compid, millis());
-            break;
-        }
-        }
+    while (mav1Uart.available())
+    {
+        mavlink_message_t msg;
+        mavlink_status_t status = {0};
+        if (mavlink_parse_char(MAVLINK_COMM_0, mav1Uart.read(), &msg, &status) != MAVLINK_FRAMING_OK)
+            continue;
+        parseMavlinkMessage(msg);
     }
 }
 

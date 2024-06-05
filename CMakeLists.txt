@@ -7,16 +7,16 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
 set(CXX_CF 
-        -Og
-        # -O2
-        -g -gdwarf-2
+        -g
         -Wall
         -Werror
+        -Wdouble-promotion
+        "$<$<CONFIG:Debug>:-Og;-g;>"
+        "$<$<CONFIG:Release>:-O2;>"
 )
 set(MCU -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-
 
 project (mavlink)
 add_library(mavlink INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lib/mavlink)

@@ -30,7 +30,7 @@ float getAltitudeFromPressure(float pressure_pa, float pressure_sealevel_pa)
      * h = -------------------------------  + h1
      *                   a
      */
-    return (((std::pow<float>(pressure_ratio, (-(kTempGradient * kAirGasConstant) / 9.81))) * kTempRefKelvin) -
+    return (((powf(pressure_ratio, (-(kTempGradient * kAirGasConstant) / 9.81))) * kTempRefKelvin) -
             kTempRefKelvin) /
            kTempGradient;
 }

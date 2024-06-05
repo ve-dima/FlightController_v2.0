@@ -19,9 +19,6 @@ void SRT::enable()
 
 void SRT::handler()
 {
-    static uint32_t maxClk = 0;
-    uint32_t startTime = tick();
     for (const Module *ptr = &__start_modules_list; ptr != &__stop_modules_list; ++ptr)
         ptr->handler();
-    maxClk = std::max(maxClk, tick() - startTime);
 }

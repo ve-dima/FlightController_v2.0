@@ -190,6 +190,7 @@ void setup()
     mav0Uart.begin(115'200);
     mav1Uart.setAutoSend(false);
     mav1Uart.begin(115'200);
+    
     debugUart.begin(115'200);
 
     EXTI->IMR1 |= EXTI_IMR1_IM0;

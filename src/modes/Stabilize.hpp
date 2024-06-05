@@ -9,7 +9,7 @@
 
 class Stabilize : public FlightMode
 {
-    float manualYawSetPoint = 0;
+    float manualYawSetPoint;
     Eigen::Quaternionf homeYaw;
     Eigen::Quaternionf acroSP = Eigen::Quaternionf::Identity();
 

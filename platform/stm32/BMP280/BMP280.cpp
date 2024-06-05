@@ -206,21 +206,21 @@ namespace BMP280
             writeRegister(BMP280_CONFIG_F16, BMP280_ADDR_CONFIG);
 
             getCalibration(calibration);
-            fcal.t1 = calibration.t1 * std::pow<float>(2, 4);
-            fcal.t2 = calibration.t2 * std::pow<float>(2, -14);
-            fcal.t3 = calibration.t3 * std::pow<float>(2, -34);
+            fcal.t1 = calibration.t1 * powf(2, 4);
+            fcal.t2 = calibration.t2 * powf(2, -14);
+            fcal.t3 = calibration.t3 * powf(2, -34);
 
-            fcal.p1 = calibration.p1 * (std::pow<float>(2, 4) / -100000.0f);
-            fcal.p2 = calibration.p1 * calibration.p2 * (std::pow<float>(2, -31) / -100000.0f);
-            fcal.p3 = calibration.p1 * calibration.p3 * (std::pow<float>(2, -51) / -100000.0f);
+            fcal.p1 = calibration.p1 * (powf(2, 4) / -100000.0f);
+            fcal.p2 = calibration.p1 * calibration.p2 * (powf(2, -31) / -100000.0f);
+            fcal.p3 = calibration.p1 * calibration.p3 * (powf(2, -51) / -100000.0f);
 
-            fcal.p4 = calibration.p4 * std::pow<float>(2, 4) - std::pow<float>(2, 20);
-            fcal.p5 = calibration.p5 * std::pow<float>(2, -14);
-            fcal.p6 = calibration.p6 * std::pow<float>(2, -31);
+            fcal.p4 = calibration.p4 * powf(2, 4) - powf(2, 20);
+            fcal.p5 = calibration.p5 * powf(2, -14);
+            fcal.p6 = calibration.p6 * powf(2, -31);
 
-            fcal.p7 = calibration.p7 * std::pow<float>(2, -4);
-            fcal.p8 = calibration.p8 * std::pow<float>(2, -19) + 1.0f;
-            fcal.p9 = calibration.p9 * std::pow<float>(2, -35);
+            fcal.p7 = calibration.p7 * powf(2, -4);
+            fcal.p8 = calibration.p8 * powf(2, -19) + 1.0f;
+            fcal.p9 = calibration.p9 * powf(2, -35);
 
             delayTime = 0;
             state = State::MEASURE;
