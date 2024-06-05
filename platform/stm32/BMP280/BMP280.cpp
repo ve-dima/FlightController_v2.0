@@ -190,7 +190,7 @@ namespace BMP280
         {
             if (readRegister(BMP280_ADDR_ID) != BMP280_VALUE_ID)
             {
-                __BKPT(0);
+                // __BKPT(0);
                 state = State::RESET;
                 delayTime = 10;
                 break;

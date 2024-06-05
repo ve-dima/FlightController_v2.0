@@ -15,7 +15,7 @@ namespace IMU
         RCC->APB1ENR1 |= RCC_APB1ENR1_TIM6EN;
         __DMB();
 
-        TIM6->PSC = 1;
+        TIM6->PSC = 19;
         TIM6->ARR = 35590; // 224,77 Hz
         TIM6->DIER |= TIM_DIER_UIE;
         TIM6->CR1 |= TIM_CR1_CEN;

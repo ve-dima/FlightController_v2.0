@@ -13,7 +13,10 @@ namespace LED
         GPIOA->PUPDR &= ~GPIO_PUPDR_PUPD15;
     }
 
-    void enable() {}
+    void enable()
+    {
+        LED::setLED(LED::Color::red, LED::Action::double_short_blink);
+    }
 
     void setState(bool state)
     {

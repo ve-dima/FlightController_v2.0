@@ -213,6 +213,7 @@ namespace ICM20948
             magnetometerTimer = millis();
             AKM_AK09916::TransferBuffer buffer{};
             I2CSlaveExternalSensorDataRead((uint8_t *)&buffer, sizeof(buffer));
+            magIsRead = true;
 
             if (not(buffer.ST2 & AKM_AK09916::ST2_BIT::HOFL) and
                 (buffer.ST1 & AKM_AK09916::ST1_BIT::DRDY))
@@ -341,11 +342,10 @@ namespace ICM20948
             if (WIA1 == AKM_AK09916::Company_ID)
             {
                 I2CSlaveRegisterWrite(AKM_AK09916::I2C_ADDRESS_DEFAULT, (uint8_t)AKM_AK09916::Register::CNTL2, AKM_AK09916::CNTL2_BIT::MODE3);
-                // delay(5);
-                // for()
-                I2CSlaveExternalSensorDataEnable(AKM_AK09916::I2C_ADDRESS_DEFAULT, (uint8_t)AKM_AK09916::Register::ST1, sizeof(AKM_AK09916::TransferBuffer));
+                delay(5);
+                // I2CSlaveExternalSensorDataEnable(AKM_AK09916::I2C_ADDRESS_DEFAULT, (uint8_t)AKM_AK09916::Register::ST1, sizeof(AKM_AK09916::TransferBuffer));
                 state = STATE::OK;
-                delayTime = 0;
+                delayTime = 10;
                 magnetometerTimer = millis();
             }
             else
@@ -354,6 +354,7 @@ namespace ICM20948
             break;
         }
         default:
+            delayTime = 0;
             isr();
             break;
         }

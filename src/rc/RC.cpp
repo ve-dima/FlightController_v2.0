@@ -22,17 +22,17 @@ namespace RC
 
     int32_t _channelsAssign[static_cast<int>(ChannelFunction::__end)] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     // CRSF
-     float _minChannelValue[maxChannelCount] = {191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191},
-           _maxChannelValue[maxChannelCount] = {1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792},
+    //  float _minChannelValue[maxChannelCount] = {191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191},
+        //    _maxChannelValue[maxChannelCount] = {1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792, 1792},
 
     // SBUS
-    // float _minChannelValue[maxChannelCount] = {172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172, 172},
-        //   _maxChannelValue[maxChannelCount] = {1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811, 1811},
+    float _minChannelValue[maxChannelCount] = {240, 240, 240, 240, 240, 240, 240, 240, 240, 240, 240, 240, 240, 240, 240, 240, 240, 240},
+          _maxChannelValue[maxChannelCount] = {1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807},
 
-          _channelDeadZone[maxChannelCount] = {5, 30, 30, 30, 30, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
+          _channelDeadZone[maxChannelCount] = {5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
           _channelIsReverse[maxChannelCount] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
-    ProtocolDetector _selectedProtocol = ProtocolDetector::CRSF;
+    ProtocolDetector _selectedProtocol = ProtocolDetector::SBUS;
 
     //=================================================
 
@@ -217,16 +217,12 @@ namespace RC
 
     void ahrsTickHandler()
     {
-        // if ((millis() - _lastValidTimestamp) > signalLoseTimeout)
-        //     _state = State::signal_lose;
+        if ((millis() - _lastValidTimestamp) > signalLoseTimeout)
+            _state = State::signal_lose;
     }
 
     void callBackHandler()
     {
-        static uint32_t handlerMaxTime = 0, acc = 0, minPeriod = UINT32_MAX;
-        static uint32_t enterTime = 0;
-        minPeriod = std::min(minPeriod, tick() - enterTime);
-        enterTime = tick();
         while (RC_UART.available())
         {
             uint8_t buff[64];
@@ -247,8 +243,6 @@ namespace RC
 
             RC_UART.clearParityErrorFlag();
         }
-        handlerMaxTime = std::max(handlerMaxTime, tick() - enterTime);
-        acc += tick() - enterTime;
     }
 
     REGISTER_SRT_MODULE(RC, init, enable, handler);

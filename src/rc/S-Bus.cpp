@@ -15,13 +15,12 @@ bool SBus::parseData(uint8_t data[], size_t inLen, bool parityError, int16_t cha
         len = 0;
     lastReceiveTime = millis();
 
+    const unsigned currentLen = std::min<unsigned>(inLen, PROTOCOL_DATA_LEN - len);
+    memcpy(dataBuffer + len, data, currentLen);
+    len += currentLen;
+
     if (len < PROTOCOL_DATA_LEN)
-    {
-        const unsigned currentLen = std::min<unsigned>(inLen, PROTOCOL_DATA_LEN - len);
-        memcpy(dataBuffer + len, data, currentLen);
-        len += currentLen;
         return false;
-    }
 
     if (dataBuffer[PROTOCOL_PACKET_HEADER_POS] != PROTOCOL_PACKET_HEADER or
         dataBuffer[PROTOCOL_PACKET_FOOTER_POS] != PROTOCOL_PACKET_FOOTER)
@@ -90,6 +89,6 @@ bool SBus::parseData(uint8_t data[], size_t inLen, bool parityError, int16_t cha
     channelCount = 18;
 
     rssi = UINT8_MAX;
-    signalAvailable = (not failSafe) and (frameLostFlag == false);
+    signalAvailable = (failSafe == false) and (frameLostFlag == false);
     return true;
 }

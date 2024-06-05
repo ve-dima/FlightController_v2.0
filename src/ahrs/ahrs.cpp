@@ -23,23 +23,18 @@ namespace AHRS
     extern float barometerNoise;
     extern float mulka;
 
-    float lastDt = 0;
-
-    float lastBaroPos = 0, baroDt = 0;
-
     Eigen::Vector3f rawRotateSpeed, rotateSpeed;
     Eigen::Vector3f rawAcceleration, acceleration;
     Eigen::Vector3f rawMagneticField;
     float pressure, temperature;
+
+    float lastDt = 0;
 
     Eigen::Quaternionf attitude = Eigen::Quaternionf::Identity();
     Eulerf eulerAttitude;
     float G = 1;
 
     Eigen::Vector3f linearAcceleration;
-
-    float pressFilter = 0;
-
     Eigen::Matrix3f P{
         {100, 0, 0},
         {0, 100, 0},
@@ -56,7 +51,6 @@ namespace AHRS
             x[2],
         };
         x = newX;
-        // baroDt += dt;
 
         const Eigen::Matrix3f newP{
             {
@@ -83,18 +77,6 @@ namespace AHRS
     void correctPos(float z,
                     const float R)
     {
-        // pressFilter = (1 - 0.01) * pressFilter + 0.01 * z;
-        // z = pressFilter;
-
-        // const float vel = (lastBaroPos - z) / baroDt;
-        // baroDt = 0;
-        // lastBaroPos = z;
-
-        // if (std::isfinite(z))
-        //     x[0] = x[0] * (1 - baroPosCoef) + baroPosCoef * z;
-        // if (std::isfinite(vel))
-        //     x[1] = x[1] * (1 - baroSpeedCoef) + baroSpeedCoef * vel;
-
         const float S = P(0, 0) + R;
         const float y = x(0) - z;
 
@@ -156,68 +138,64 @@ namespace AHRS
             },
         };
         P = newP;
-
-        // x(2) = z;
-    }
-
-    void update()
-    {
-        const Eigen::Quaternionf attitude = getFRD_Attitude();
-
-        float sinr_cosp = 2 * (attitude.w() * attitude.x() + attitude.y() * attitude.z());
-        float cosr_cosp = 1 - 2 * (attitude.x() * attitude.x() + attitude.y() * attitude.y());
-        eulerAttitude.roll = std::atan2(sinr_cosp, cosr_cosp);
-
-        float sinp = 2 * (attitude.w() * attitude.y() - attitude.x() * attitude.z());
-        if (std::abs(sinp) >= 1)
-            eulerAttitude.pitch = std::copysign<float>(M_PI / 2, sinp); // use 90 degrees if out of range
-        else
-            eulerAttitude.pitch = std::asin(sinp);
-
-        float siny_cosp = 2 * (attitude.w() * attitude.z() + attitude.x() * attitude.y());
-        float cosy_cosp = 1 - 2 * (attitude.y() * attitude.y() + attitude.z() * attitude.z());
-        eulerAttitude.yaw = std::atan2(siny_cosp, cosy_cosp);
     }
 
     void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f rAcc, float dT)
     {
-        lastDt = dT;
-        rawRotateSpeed = rSpeed;
-        rawAcceleration = rAcc;
+        {
+            rawRotateSpeed = rSpeed;
+            rotateSpeed = rSpeed - Eigen::Vector3f{gyroscopeOffset};
 
-        rotateSpeed = rSpeed - Eigen::Vector3f{gyroscopeOffset};
-        acceleration = rAcc - Eigen::Vector3f{accelerometerOffset};
+            Eigen::Quaternionf current = attitude;
+            current.coeffs() += omega(current, rotateSpeed).coeffs() * dT;
+            current.normalize();
+            attitude = current;
+        }
 
-        Eigen::Quaternionf current = attitude;
-        current.coeffs() += omega(current, rotateSpeed).coeffs() * dT;
-        current.normalize();
-        attitude = current;
+        {
+            rawAcceleration = rAcc;
+            acceleration = rAcc - Eigen::Vector3f{accelerometerOffset};
 
-        G = acceleration.norm();
-        float gain = accelerationFilterGain - std::abs(G - 1) * accelerationRejection;
-        gain = std::clamp(gain, 0.f, 1.f);
+            G = acceleration.norm();
+            float gain = accelerationFilterGain - std::abs(G - 1) * accelerationRejection;
+            gain = std::clamp(gain, 0.f, 1.f);
 
-        Eigen::Quaternionf worldFrameAcc = (current.conjugate() *
-                                            Eigen::Quaternionf(0.f, acceleration.x(), acceleration.y(), acceleration.z())) *
-                                           current;
-        linearAcceleration = worldFrameAcc.vec() - Eigen::Vector3f{0, 0, 1};
-        linearAcceleration *= 9.81;
+            Eigen::Quaternionf worldFrameAcc = (attitude.conjugate() *
+                                                Eigen::Quaternionf(0.f, acceleration.x(), acceleration.y(), acceleration.z())) *
+                                               attitude;
+            linearAcceleration = worldFrameAcc.vec() - Eigen::Vector3f{0, 0, 1};
+            linearAcceleration *= 9.81;
 
-        worldFrameAcc.coeffs() *= 1 / G;
-        Eigen::Quaternionf accDeltaQ;
-        accDeltaQ.w() = std::sqrt((worldFrameAcc.z() + 1) / 2);
-        accDeltaQ.x() = -worldFrameAcc.y() / (2 * accDeltaQ.w());
-        accDeltaQ.y() = worldFrameAcc.x() / (2 * accDeltaQ.w());
-        accDeltaQ.z() = 0.0;
-        accDeltaQ = adaptiveSLERP_I(accDeltaQ, gain);
+            worldFrameAcc.coeffs() *= 1 / G;
+            Eigen::Quaternionf accDeltaQ;
+            accDeltaQ.w() = std::sqrt((worldFrameAcc.z() + 1) / 2);
+            accDeltaQ.x() = -worldFrameAcc.y() / (2 * accDeltaQ.w());
+            accDeltaQ.y() = worldFrameAcc.x() / (2 * accDeltaQ.w());
+            accDeltaQ.z() = 0.0;
+            accDeltaQ = adaptiveSLERP_I(accDeltaQ, gain);
 
-        if (accDeltaQ.coeffs().allFinite())
-            attitude = (current * accDeltaQ).normalized();
+            if (accDeltaQ.coeffs().allFinite())
+                attitude = (attitude * accDeltaQ).normalized();
+        }
 
-        update();
+        {
+            const float sinr_cosp = 2 * (attitude.w() * attitude.x() + attitude.y() * attitude.z());
+            const float cosr_cosp = 1 - 2 * (attitude.x() * attitude.x() + attitude.y() * attitude.y());
+            eulerAttitude.roll = std::atan2(sinr_cosp, cosr_cosp);
+
+            float sinp = 2 * (attitude.w() * attitude.y() - attitude.x() * attitude.z());
+            if (std::abs(sinp) >= 1)
+                eulerAttitude.pitch = std::copysign<float>(M_PI / 2, sinp);
+            else
+                eulerAttitude.pitch = std::asin(sinp);
+
+            const float siny_cosp = 2 * (attitude.w() * attitude.z() + attitude.x() * attitude.y());
+            const float cosy_cosp = 1 - 2 * (attitude.y() * attitude.y() + attitude.z() * attitude.z());
+            eulerAttitude.yaw = std::atan2(siny_cosp, cosy_cosp);
+        }
+
         correctAcc(linearAcceleration.z(),
                    accelerometerNoise * accelerometerNoise);
-        // correctAcc(linearAcceleration.z(), 0);
         predictKalman(dT);
     }
 
@@ -229,7 +207,6 @@ namespace AHRS
             const float radius = (magnetometerMaximum[i] - magnetometerMinimum[i]) / 2;
             field(i) = (field(i) - (magnetometerMinimum[i] + radius)) / radius;
         }
-        // field.normalize();
 
         const Eigen::Quaternionf current = attitude;
         Eigen::Quaternionf worldFrameMag = (current.conjugate() *
@@ -255,7 +232,6 @@ namespace AHRS
         pressure = P;
         correctPos(getAltitudeFromPressure(pressure, 101'325),
                    barometerNoise * barometerNoise);
-        // correctPos(getAltitudeFromPressure(pressure, 101'325), 0);
     }
 
     void updateByTemperature(float T)
@@ -288,5 +264,5 @@ namespace AHRS
     float getLastDT() { return lastDt; }
 
     Eigen::Vector3f getZState() { return x; }
-    // Eigen::Vector3f getZVaraince() { return Eigen::Vector3f{P(0, 0), P(1, 1), P(2, 2)}; }
+    Eigen::Vector3f getZVaraince() { return Eigen::Vector3f{P(0, 0), P(1, 1), P(2, 2)}; }
 }

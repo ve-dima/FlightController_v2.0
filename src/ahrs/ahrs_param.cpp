@@ -16,7 +16,7 @@ namespace AHRS
     float accelerationFilterGain = 0.01;
     PARAM_ADD(param::FLOAT, AHRS_ACC_GAIN, &accelerationFilterGain);
 
-    float accelerationRejection = 0.7;
+    float accelerationRejection = 0.3;
     PARAM_ADD(param::FLOAT, AHRS_ACC_RJT, &accelerationRejection);
 
     float magnetometerFilterGain = 0.01;

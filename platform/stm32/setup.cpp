@@ -38,9 +38,14 @@ void setup()
     while (not(RCC->CR & RCC_CR_PLLRDY))
         ;
 
+    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | RCC_CFGR_SW_PLL;
+    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
+        ;
+
     SystemInit();
     SystemCoreClockUpdate();
     SysTick_Config(F_CPU / 1'000);
+    NVIC_SetPriority(SysTick_IRQn, 0);
 
     //========================================================================
 
@@ -63,11 +68,7 @@ void setup()
                       (4 << GPIO_AFRH_AFSEL9_Pos));
 
     SYSCFG->CFGR1 |= SYSCFG_CFGR1_I2C1_FMP;
-    I2C1->TIMINGR |= (0x1 << I2C_TIMINGR_PRESC_Pos) |
-                     (0x9 << I2C_TIMINGR_SCLL_Pos) |
-                     (0x3 << I2C_TIMINGR_SCLH_Pos) |
-                     (0x2 << I2C_TIMINGR_SDADEL_Pos) |
-                     (0x3 << I2C_TIMINGR_SCLDEL_Pos);
+    I2C1->TIMINGR |= 0x00F08BFF;
 
     //========================================================================
 

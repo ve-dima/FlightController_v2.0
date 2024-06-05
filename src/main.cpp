@@ -9,7 +9,7 @@ int main()
 
     SRT::enable();
 
-    while (1)
+    while (true)
     {
         loop();
         SRT::handler();

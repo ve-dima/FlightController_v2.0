@@ -7,8 +7,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
 set(CXX_CF 
-        # -Og
-        -O2
+        -Og
+        # -O2
         -g -gdwarf-2
         -Wall
         -Werror
@@ -26,7 +26,6 @@ target_compile_definitions(mavlink INTERFACE
         MAVLINK_NO_SIGN_PACKET
         MAVLINK_NO_SIGNATURE_CHECK
         MAVLINK_USE_CONVENIENCE_FUNCTIONS
-        MAVLINK_COMM_NUM_BUFFERS=2
 )
 
 project(lwrb)
@@ -46,7 +45,6 @@ file(GLOB_RECURSE SOURCES
         "lib/Algo/*"
         "lib/ArduinoAPI/*"
         "lib/SRT/*.cpp"
-        # "lib/Math"
         "platform/stm32/*.cpp"
 )
 
@@ -74,8 +72,10 @@ target_include_directories(${PROJECT_NAME}.elf
 )
 target_compile_definitions(${PROJECT_NAME}.elf
         PUBLIC
-        -DSTM32G431xx
-        -DF_CPU=16000000
+        STM32G431xx
+        F_CPU=160000000
+        HSE_VALUE=8000000
+        MAVLINK_COMM_NUM_BUFFERS=2
 )
  
 target_link_options(${PROJECT_NAME}.elf PUBLIC -specs=nano.specs)
@@ -107,30 +107,3 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
         "Building ${HEX_FILE} 
         Building ${BIN_FILE}"
 )
-
-# For pc
-# file(GLOB_RECURSE SOURCES
-#         "src/*"
-#         "platform/pc/*.cpp"
-# )
-# set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/platform/pc/sections.ld)
-
-# add_executable(${PROJECT_NAME} ${SOURCES} ${LINKER_SCRIPT})
-
-# set_target_properties(${PROJECT_NAME} PROPERTIES CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -T ${LINKER_SCRIPT}") 
-# target_compile_options(${PROJECT_NAME}
-#         PUBLIC
-#         ${CXX_CF}
-# )
-# target_include_directories(${PROJECT_NAME}
-#         PUBLIC
-#                 "include"
-#                 "src/*"
-#                 "platform/pc"
-# )
-# target_link_options(${PROJECT_NAME} PUBLIC -Wl,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map)
-# target_link_libraries (${PROJECT_NAME} Eigen3::Eigen)
-
-# enable_testing()
-# add_subdirectory(test)
-# target_link_libraries(UnitTest Eigen3::Eigen)
