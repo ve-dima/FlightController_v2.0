@@ -8,6 +8,7 @@
 #include "param/param.hpp"
 #include "math/math.hpp"
 #include <stm32g4xx.h>
+#include <numeric>
 
 float manualMaxTilt = 30 * (M_PI / 180);
 float manualYawRate = 150 * (M_PI / 180);
@@ -36,6 +37,9 @@ void Stabilize::onEnter()
     manualYawSetPoint = AHRS::getFRD_Euler().yaw;
     homeYaw = Eigen::Quaternionf{std::cos(manualYawSetPoint / 2.f), 0.f, 0.f, std::sin(manualYawSetPoint / 2.f)};
 
+    inGyroscopeCalibration = true;
+    gyroscopeSamples = 0;
+
     LED::setLED(LED::Color::green, LED::Action::double_short_blink);
     Motor::arm();
 }
@@ -46,6 +50,25 @@ void Stabilize::attitudeTickHandler()
         levelMode();
     else
         altMode();
+}
+
+static constexpr unsigned gyroscopeSampleCount = 250;
+void Stabilize::handler()
+{
+    // if (not inGyroscopeCalibration)
+    //     return;
+
+    // static Eigen::Vector3f samples[gyroscopeSampleCount];
+}
+
+float const constrain(float fAngle)
+{
+    if (fAngle > M_PI)
+        fAngle = fAngle - (2 * M_PI);
+    else if (fAngle < -M_PI)
+        fAngle = fAngle + (2 * M_PI);
+
+    return fAngle;
 }
 
 Eigen::Quaternionf Stabilize::getSPFromRC()
@@ -67,14 +90,15 @@ Eigen::Quaternionf Stabilize::getSPFromRC()
 
     if (not RC::inDZ(RC::ChannelFunction::YAW) and
         RC::channel(RC::ChannelFunction::THROTTLE) > -0.9)
-        manualYawSetPoint += RC::channel(RC::ChannelFunction::YAW) * AHRS::getLastDT() * manualYawRate;
+    {
+        manualYawSetPoint = std::clamp<float>(manualYawSetPoint +
+                                                  RC::channel(RC::ChannelFunction::YAW) * AHRS::getLastDT() * manualYawRate,
+                                              -M_PI, M_PI);
+    }
 
     Eigen::Quaternionf qYawSP(std::cos(manualYawSetPoint / 2.f), 0.f, 0.f, std::sin(manualYawSetPoint / 2.f));
 
-    if (RC::channel(RC::ChannelFunction::FLTBTN_SLOT_1) > 0)
-        return qRPSP * qYawSP;
-    else
-        return qYawSP * qRPSP;
+    return qYawSP * qRPSP;
 }
 
 float Stabilize::getThrottleFromRC()

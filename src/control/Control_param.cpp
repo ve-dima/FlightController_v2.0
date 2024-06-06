@@ -32,21 +32,21 @@ namespace Control
                 .P = 0.04,
                 .I = 0.0005,
                 .D = 0.003,
-                .maxICoef = 0.15,
+                .maxICoef = 0.20,
                 .max = 1,
             },
             .pitch = {
                 .P = 0.04,
                 .I = 0.0005,
                 .D = 0.003,
-                .maxICoef = 0.15,
+                .maxICoef = 0.20,
                 .max = 1,
             },
             .yaw = {
                 .P = 0.08,
                 .I = 0.001,
                 .D = 0,
-                .maxICoef = 0.15,
+                .maxICoef = 0.20,
                 .max = 1,
             }}};
             

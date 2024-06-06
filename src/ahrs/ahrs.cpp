@@ -142,6 +142,8 @@ namespace AHRS
 
     void updateByIMU(Eigen::Vector3f rSpeed, Eigen::Vector3f rAcc, float dT)
     {
+        lastDt = dT;
+
         {
             rawRotateSpeed = rSpeed;
             rotateSpeed = rSpeed - Eigen::Vector3f{gyroscopeOffset};
@@ -256,10 +258,13 @@ namespace AHRS
 
     Eigen::Quaternionf getFRU_Attitude() { return attitude; }
     Eigen::Quaternionf getFRD_Attitude() { return Eigen::Quaternionf(attitude.w(), attitude.x(), attitude.y(), -attitude.z()); }
-    Eulerf getFRD_Euler() { return eulerAttitude; }
-    Eulerf getFRU_Euler() { return Eulerf{eulerAttitude.roll, eulerAttitude.pitch, -eulerAttitude.yaw}; }
+    Eulerf getFRD_Euler() { return Eulerf{eulerAttitude.roll, eulerAttitude.pitch, -eulerAttitude.yaw}; }
+    Eulerf getFRU_Euler() { return eulerAttitude; }
 
-    Eigen::Vector3f getFRD_LinearAcceleration() { return linearAcceleration; }
+    Eigen::Vector3f getFRD_LinearAcceleration()
+    {
+        return linearAcceleration;
+    }
 
     float getLastDT() { return lastDt; }
 

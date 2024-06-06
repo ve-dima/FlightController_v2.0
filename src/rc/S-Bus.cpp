@@ -86,7 +86,7 @@ bool SBus::parseData(uint8_t data[], size_t inLen, bool parityError, int16_t cha
 
     channels[16] = channels[16] > 0 ? 1 : 0;
     channels[17] = channels[17] > 0 ? 1 : 0;
-    channelCount = 18;
+    channelCount = 16;
 
     rssi = UINT8_MAX;
     signalAvailable = (failSafe == false) and (frameLostFlag == false);

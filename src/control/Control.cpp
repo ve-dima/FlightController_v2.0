@@ -118,7 +118,7 @@ namespace Control
         for (int axis = 0; axis < 3; axis++)
         {
             float iReduceFactor = 1 - (rateError[axis] * rateError[axis]) / iReducerMaxRate;
-            if (iReduceFactor < 0 or targetThrust < minimalTrust)
+            if (iReduceFactor < 0 or targetThrust < 0.3)
                 iReduceFactor = 0;
             target[axis] = ratePid.pids[axis].calculate(rateError[axis], rateAcc[axis], iReduceFactor, dt);
         }
@@ -167,8 +167,8 @@ namespace Control
 
         Eigen::Vector3f angleError = (attitude.conjugate() * qd).vec();
         angleError *= 2.f;
-        if (attitude.w() < 0)
-            angleError = -angleError;
+        // if (attitude.w() < 0)
+        //     angleError = -angleError;
 
         for (int axis = 0; axis < 3; axis++)
             target[axis] = anglePid.pids[axis].calculate(angleError[axis], 0, 0);

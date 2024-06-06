@@ -56,6 +56,8 @@ namespace LED
 
     void setLED(Color c, Action a)
     {
+        if (c == color and a == action)
+            return;
         actionTickCounter = 0;
         color = c;
         action = a;

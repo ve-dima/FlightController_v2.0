@@ -359,4 +359,6 @@ namespace ICM20948
             break;
         }
     }
+
+    bool isOK() { return state == STATE::OK; }
 }

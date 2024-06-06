@@ -21,7 +21,7 @@ void mavlink_heartbeat_report(mavlink_channel_t ch)
 
 void mavlink_quat_report(mavlink_channel_t ch)
 {
-    const Eigen::Quaternionf attitude = AHRS::getFRD_Attitude();
+    const Eigen::Quaternionf attitude = Control::getTargetAttitude();
     const Eigen::Vector3f rotateRate = AHRS::getFRD_RotateSpeed();
 
     mavlink_msg_attitude_quaternion_send(ch, millis(),
@@ -47,7 +47,7 @@ void mavlink_attitude_target_report(mavlink_channel_t ch)
     const Eigen::Vector3f targetRate = Control::getTargetRate();
     const float targetTrust = Control::getTargetThrust();
 
-    mavlink_msg_attitude_target_send(MAVLINK_COMM_0, millis(),
+    mavlink_msg_attitude_target_send(ch, millis(),
                                      0, targetAttitude.coeffs().data(),
                                      targetRate.x(), targetRate.y(), targetRate.z(),
                                      targetTrust);
@@ -98,13 +98,13 @@ void mavlink_actuator_report(mavlink_channel_t ch)
     float powers[8];
     std::copy(Motor::getPower(), Motor::getPower() + Motor::maxCount, powers);
 
-    mavlink_msg_actuator_control_target_send(MAVLINK_COMM_0, millis() * 1000,
+    mavlink_msg_actuator_control_target_send(ch, millis() * 1000,
                                              0, powers);
 }
 
 void mavlink_rc_report(mavlink_channel_t ch)
 {
-    mavlink_msg_rc_channels_send(MAVLINK_COMM_0, millis(), RC::channelCount(),
+    mavlink_msg_rc_channels_send(ch, millis(), RC::channelCount(),
                                  RC::rawChannel(1),
                                  RC::rawChannel(2),
                                  RC::rawChannel(3),
@@ -266,10 +266,10 @@ void handler()
         mavlink_pressure_report(MAVLINK_COMM_1);
     }
 
-    for (static uint32_t attitudeTimer = 0; millis() - attitudeTimer > 50; attitudeTimer = millis())
+    for (static uint32_t attitudeTimer = 0; millis() - attitudeTimer > 100; attitudeTimer = millis())
     {
         mavlink_quat_report(MAVLINK_COMM_0);
-        mavlink_euler_report(MAVLINK_COMM_0);
+        // mavlink_euler_report(MAVLINK_COMM_0);
         mavlink_state_report(MAVLINK_COMM_0);
 
         mavlink_quat_report(MAVLINK_COMM_1);
@@ -287,7 +287,7 @@ void handler()
         // mavlink_quat_report(MAVLINK_COMM_0);
     }
 
-    for (static uint32_t rcTimer = 0; millis() - rcTimer > 100; rcTimer = millis())
+    for (static uint32_t rcTimer = 0; millis() - rcTimer > 250; rcTimer = millis())
         mavlink_rc_report(MAVLINK_COMM_0), mavlink_rc_report(MAVLINK_COMM_1);
 
     while (mav0Uart.available())

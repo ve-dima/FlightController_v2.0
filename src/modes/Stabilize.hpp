@@ -9,6 +9,8 @@
 
 class Stabilize : public FlightMode
 {
+    bool inGyroscopeCalibration;
+    unsigned gyroscopeSamples;
     float manualYawSetPoint;
     Eigen::Quaternionf homeYaw;
     Eigen::Quaternionf acroSP = Eigen::Quaternionf::Identity();
@@ -20,6 +22,7 @@ public:
     void onEnter() override final;
 
     void attitudeTickHandler() override final;
+    void handler() override final;
 
 private:
     Eigen::Quaternionf getSPFromRC();
