@@ -98,7 +98,12 @@ Eigen::Quaternionf Stabilize::getSPFromRC()
 
     Eigen::Quaternionf qYawSP(std::cos(manualYawSetPoint / 2.f), 0.f, 0.f, std::sin(manualYawSetPoint / 2.f));
 
-    return qYawSP * qRPSP;
+    if (RC::channel(RC::ChannelFunction::AUX_3) < 0)
+        return qYawSP * qRPSP;
+    else
+    {
+        return qRPSP * qYawSP;
+    }
 }
 
 float Stabilize::getThrottleFromRC()
