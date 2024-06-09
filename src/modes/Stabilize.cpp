@@ -11,7 +11,7 @@
 #include <numeric>
 
 float manualMaxTilt = 30 * (M_PI / 180);
-float manualYawRate = 150 * (M_PI / 180);
+float manualYawRate = 85 * (M_PI / 180);
 float acroRate = 600 * (M_PI / 180);
 float altitudeSetSpeed = 2;
 
@@ -98,7 +98,7 @@ Eigen::Quaternionf Stabilize::getSPFromRC()
 
     Eigen::Quaternionf qYawSP(std::cos(manualYawSetPoint / 2.f), 0.f, 0.f, std::sin(manualYawSetPoint / 2.f));
 
-    if (RC::channel(RC::ChannelFunction::AUX_3) < 0)
+    if (RC::channel(RC::ChannelFunction::AUX_4) < 0)
         return qYawSP * qRPSP;
     else
     {

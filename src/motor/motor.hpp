@@ -3,7 +3,7 @@
 
 namespace Motor
 {
-    static constexpr unsigned maxCount = 6;
+    static constexpr unsigned maxCount = 4;
 
     static constexpr uint32_t disarmTime = 1'000;
     static constexpr uint32_t armTime = 1'000;

@@ -21,7 +21,7 @@ void mavlink_heartbeat_report(mavlink_channel_t ch)
 
 void mavlink_quat_report(mavlink_channel_t ch)
 {
-    const Eigen::Quaternionf attitude = Control::getTargetAttitude();
+    const Eigen::Quaternionf attitude = AHRS::getFRD_Attitude();
     const Eigen::Vector3f rotateRate = AHRS::getFRD_RotateSpeed();
 
     mavlink_msg_attitude_quaternion_send(ch, millis(),
@@ -269,7 +269,7 @@ void handler()
     for (static uint32_t attitudeTimer = 0; millis() - attitudeTimer > 100; attitudeTimer = millis())
     {
         mavlink_quat_report(MAVLINK_COMM_0);
-        // mavlink_euler_report(MAVLINK_COMM_0);
+        mavlink_euler_report(MAVLINK_COMM_0);
         mavlink_state_report(MAVLINK_COMM_0);
 
         mavlink_quat_report(MAVLINK_COMM_1);
@@ -288,7 +288,10 @@ void handler()
     }
 
     for (static uint32_t rcTimer = 0; millis() - rcTimer > 250; rcTimer = millis())
+    {
         mavlink_rc_report(MAVLINK_COMM_0), mavlink_rc_report(MAVLINK_COMM_1);
+        mavlink_actuator_report(MAVLINK_COMM_0), mavlink_actuator_report(MAVLINK_COMM_1);
+    }
 
     while (mav0Uart.available())
     {

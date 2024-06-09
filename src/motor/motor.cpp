@@ -7,11 +7,16 @@ namespace Motor
     State state = State::undefined;
     State getState() { return state; }
 
-    float power[maxCount];
+    float power[8];
 
     bool setPower(unsigned motor, float motorPower)
     {
-        if (motor > maxCount or state != State::armed)
+        if (motor < maxCount)
+        {
+            if (state != State::armed)
+                return false;
+        }
+        else if (motor >= 6)
             return false;
 
         if (not std::isfinite(motorPower))
@@ -26,7 +31,7 @@ namespace Motor
 
     float getPower(unsigned motor)
     {
-        if (motor > maxCount)
+        if (motor > 6)
             return NAN;
         else
             return power[motor];

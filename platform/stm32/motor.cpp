@@ -73,7 +73,7 @@ namespace Motor
         TIM1->CR1 = TIM2->CR1 = TIM16->CR1 = TIM17->CR1 = TIM_CR1_CEN;
     }
 
-    extern float power[maxCount];
+    extern float power[8];
     void updateOutput(unsigned motor)
     {
         if (power[motor] > 0 and

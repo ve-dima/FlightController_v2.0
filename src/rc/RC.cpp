@@ -30,7 +30,7 @@ namespace RC
           _maxChannelValue[maxChannelCount] = {1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807, 1807},
 
           _channelDeadZone[maxChannelCount] = {5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
-          _channelIsReverse[maxChannelCount] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+          _channelIsReverse[maxChannelCount] = {1, 1, 1, 13,13, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
     ProtocolDetector _selectedProtocol = ProtocolDetector::SBUS;
 
