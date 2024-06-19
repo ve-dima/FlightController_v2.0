@@ -16,7 +16,7 @@ namespace Motor
 
     void init()
     {
-        RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
+        RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN | RCC_AHB2ENR_GPIOBEN;
         RCC->APB1ENR1 |= RCC_APB1ENR1_TIM2EN;
         RCC->APB2ENR |= RCC_APB2ENR_TIM17EN | RCC_APB2ENR_TIM16EN | RCC_APB2ENR_TIM1EN;
 
@@ -47,29 +47,31 @@ namespace Motor
         GPIOA->AFR[1] |= ((6 << GPIO_AFRH_AFSEL10_Pos) |
                           (11 << GPIO_AFRH_AFSEL11_Pos) |
                           (1 << GPIO_AFRH_AFSEL12_Pos));
-        GPIOB->AFR[0] |= 2 << GPIO_AFRL_AFSEL5_Pos;
+        GPIOB->AFR[0] |= 10 << GPIO_AFRL_AFSEL5_Pos;
 
         static constexpr uint32_t pwmFreq = 100;
         TIM1->PSC = TIM2->PSC = TIM16->PSC = TIM17->PSC = F_CPU / 1'000'000 - 1;
         TIM1->ARR = TIM2->ARR = TIM16->ARR = TIM17->ARR = 1'000'000 / pwmFreq - 1;
         static constexpr uint32_t pwmOutputChannelSettings = (TIM_CCMR1_OC1PE |
                                                               0b110 << TIM_CCMR1_OC1M_Pos);
-        TIM17->CCMR1 |= pwmOutputChannelSettings;
-        TIM2->CCMR1 |= pwmOutputChannelSettings << 8;
-        TIM2->CCMR1 |= pwmOutputChannelSettings;
-        TIM16->CCMR1 |= pwmOutputChannelSettings;
         TIM1->CCMR2 |= pwmOutputChannelSettings;
         TIM1->CCMR2 |= pwmOutputChannelSettings << 8;
+        TIM2->CCMR1 |= pwmOutputChannelSettings;
+        TIM2->CCMR1 |= pwmOutputChannelSettings << 8;
+        TIM16->CCMR1 |= pwmOutputChannelSettings;
+        TIM17->CCMR1 |= pwmOutputChannelSettings;
 
-        TIM17->CCER |= TIM_CCER_CC1E;
+        TIM1->CCER |= TIM_CCER_CC3E | TIM_CCER_CC4E;
         TIM2->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E;
         TIM16->CCER |= TIM_CCER_CC1E;
-        TIM1->CCER |= TIM_CCER_CC3E | TIM_CCER_CC4E;
+        TIM17->CCER |= TIM_CCER_CC1E;
 
         for (auto c : assignTable)
-            *c = 0;
+            *c = 1'000;
 
         TIM1->BDTR |= TIM_BDTR_MOE;
+        TIM16->BDTR |= TIM_BDTR_MOE;
+        TIM17->BDTR |= TIM_BDTR_MOE;
         TIM1->CR1 = TIM2->CR1 = TIM16->CR1 = TIM17->CR1 = TIM_CR1_CEN;
     }
 
