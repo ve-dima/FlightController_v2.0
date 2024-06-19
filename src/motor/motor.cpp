@@ -75,12 +75,10 @@ namespace Motor
         case State::disarming:
             if (millis() - disarmTimeStamp > disarmTime)
                 state = State::disarmed;
-
             break;
         case State::arming:
             if (millis() - armTimeStamp > armTime)
                 state = State::armed;
-
             break;
         default:
             break;

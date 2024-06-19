@@ -12,6 +12,7 @@ class Stabilize : public FlightMode
     bool inGyroscopeCalibration;
     unsigned gyroscopeSamples;
     float manualYawSetPoint;
+    float targetAlt = NAN;
     Eigen::Quaternionf homeYaw;
     Eigen::Quaternionf acroSP = Eigen::Quaternionf::Identity();
 

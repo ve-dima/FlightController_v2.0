@@ -7,12 +7,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
 set(CXX_CF 
-        -g
         -Wall
         -Werror
         -Wdouble-promotion
-        "$<$<CONFIG:Debug>:-Og;-g;>"
-        "$<$<CONFIG:Release>:-O2;>"
+        # "$<$<CONFIG:Debug>:-Og;-g;>"
+        # "$<$<CONFIG:Release>:-O2;>"
+        -Og -g
 )
 set(MCU -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard)
 

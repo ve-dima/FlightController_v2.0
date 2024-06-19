@@ -51,11 +51,11 @@ namespace Control
             }}};
             
     PIDf::Settings velocitySetings{
-        .P = 0.2,
+        .P = 0.3,
         .I = 0,
-        .D = 0,
-        .maxICoef = 0.15,
-        .max = 0.8,
+        .D = 0.001,
+        .maxICoef = 0.1,
+        .max = 0.5,
     };
 
     PIDf::Settings positionSettings

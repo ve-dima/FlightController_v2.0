@@ -22,6 +22,7 @@ void mavlink_heartbeat_report(mavlink_channel_t ch)
 void mavlink_quat_report(mavlink_channel_t ch)
 {
     const Eigen::Quaternionf attitude = AHRS::getFRD_Attitude();
+    // const Eigen::Quaternionf attitude = Control::getTargetAttitude();
     const Eigen::Vector3f rotateRate = AHRS::getFRD_RotateSpeed();
 
     mavlink_msg_attitude_quaternion_send(ch, millis(),
@@ -42,13 +43,13 @@ void mavlink_euler_report(mavlink_channel_t ch)
 void mavlink_attitude_target_report(mavlink_channel_t ch)
 {
     Eigen::Quaternionf targetAttitude = Control::getTargetAttitude();
-    std::swap(targetAttitude.w(), targetAttitude.z()); // eigen store coeffs in x y z w order, need w first
+    const float tA[4] = {targetAttitude.w(), targetAttitude.x(), targetAttitude.y(), targetAttitude.z()};
 
     const Eigen::Vector3f targetRate = Control::getTargetRate();
     const float targetTrust = Control::getTargetThrust();
 
     mavlink_msg_attitude_target_send(ch, millis(),
-                                     0, targetAttitude.coeffs().data(),
+                                     0, tA,
                                      targetRate.x(), targetRate.y(), targetRate.z(),
                                      targetTrust);
 }
@@ -291,6 +292,7 @@ void handler()
     {
         mavlink_rc_report(MAVLINK_COMM_0), mavlink_rc_report(MAVLINK_COMM_1);
         mavlink_actuator_report(MAVLINK_COMM_0), mavlink_actuator_report(MAVLINK_COMM_1);
+        mavlink_attitude_target_report(MAVLINK_COMM_0), mavlink_attitude_target_report(MAVLINK_COMM_1);
     }
 
     while (mav0Uart.available())

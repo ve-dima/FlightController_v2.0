@@ -5,8 +5,8 @@ namespace Motor
 {
     static constexpr unsigned maxCount = 4;
 
-    static constexpr uint32_t disarmTime = 1'000;
-    static constexpr uint32_t armTime = 1'000;
+    static constexpr uint32_t disarmTime = 3'000;
+    static constexpr uint32_t armTime = 10;
 
     enum class State
     {
