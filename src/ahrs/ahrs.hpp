@@ -32,6 +32,7 @@ namespace AHRS
     Eigen::Quaternionf getFRD_Attitude();
     Eulerf getFRU_Euler();
     Eulerf getFRD_Euler();
+    float getTiltCos();
 
     Eigen::Vector3f getFRD_LinearAcceleration();
     float getLastDT();

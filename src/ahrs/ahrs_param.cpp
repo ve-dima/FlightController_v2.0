@@ -25,10 +25,10 @@ namespace AHRS
     float accelerometerNoise = 0.5;
     PARAM_ADD(param::FLOAT, AHRS_ACC_NOISE, &accelerometerNoise);
 
-    float barometerNoise = 2;
+    float barometerNoise = 1;
     PARAM_ADD(param::FLOAT, AHRS_BARO_NOISE, &barometerNoise);
 
-    float mulka = 1;
+    float mulka = 100;
     PARAM_ADD(param::FLOAT, AHRS_EKF_Q, &mulka);
 
     Eigen::Matrix3f Q{

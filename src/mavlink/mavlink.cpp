@@ -88,7 +88,7 @@ void mavlink_state_report(mavlink_channel_t ch)
                                           linearAcc.x(), linearAcc.y(), linearAcc.z(),
                                           NAN, NAN, verticalState(1),
                                           NAN, NAN, verticalState(0),
-                                          NAN,
+                                          AHRS::getTiltCos(),
                                           velVariance, posVariance,
                                           attitude.coeffs().data(),
                                           rotateRate.x(), rotateRate.y(), rotateRate.z());

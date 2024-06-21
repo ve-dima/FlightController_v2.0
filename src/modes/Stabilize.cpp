@@ -15,13 +15,15 @@ float manualYawRate = 150 * (M_PI / 180);
 float acroRate = 600 * (M_PI / 180);
 float altitudeSetSpeed = 2;
 float maxOffsetCorrectionAngle = 5 * (M_PI / 180);
+float maxTakeoffAngle = std::cos(15 * (M_PI / 180));
 
 Stabilize stabilizeMode;
 
 bool Stabilize::needEnter(const char *&reason)
 {
     if (RC::channel(RC::ChannelFunction::ARMSWITCH) > 0.2 and
-        RC::channel(RC::ChannelFunction::THROTTLE) < -0.9)
+        RC::channel(RC::ChannelFunction::THROTTLE) < -0.9 and
+        AHRS::getTiltCos() > maxTakeoffAngle)
     {
         reason = "Manual switch";
         return true;
@@ -42,7 +44,7 @@ void Stabilize::onEnter()
     gyroscopeSamples = 0;
     targetAlt = NAN;
 
-    LED::setLED(LED::Color::green, LED::Action::double_short_blink);
+    LED::setLED(LED::Color::green, LED::Action::fast_blink);
     Motor::arm();
 }
 
@@ -134,7 +136,7 @@ void Stabilize::altMode()
     if (std::isnan(targetAlt))
         targetAlt = AHRS::getZState()(0);
 
-    if(not RC::inDZ(RC::ChannelFunction::THROTTLE))
+    if (not RC::inDZ(RC::ChannelFunction::THROTTLE))
         targetAlt += RC::channel(RC::ChannelFunction::THROTTLE) * AHRS::getLastDT() * 0.5;
 
     Control::setTargetAttitude(getSPFromRC());

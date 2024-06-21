@@ -30,7 +30,7 @@
             "preLaunchTask": "Build PC version"
         },
         {
-            "name": "Cortex Debug",
+            "name": "FC Debug",
             "cwd": "${workspaceFolder}",
             "executable": "${command:cmake.launchTargetPath}",
             "request": "launch",
@@ -44,6 +44,21 @@
             "interface": "swd",
             "svdFile": "platform/stm32/STM32G431.svd",
             "preLaunchTask": "Build STM32 version",
+        },
+        {
+            "name": "FC Connect",
+            "cwd": "${workspaceFolder}",
+            "executable": "${command:cmake.launchTargetPath}",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32g4x.cfg"
+            ],
+            "showDevDebugOutput": "parsed",
+            "interface": "swd",
+            "svdFile": "platform/stm32/STM32G431.svd",
         },
     ]
 }

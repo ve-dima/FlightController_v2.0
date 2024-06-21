@@ -9,7 +9,6 @@ Disarm disarmMode;
 
 void Disarm::onEnter()
 {
-    LED::setLED(LED::Color::red, LED::Action::off);
     Motor::disarm();
 }
 
@@ -60,5 +59,5 @@ void Disarm::handler()
         return;
     }
 
-    LED::setLED(LED::Color::red, LED::Action::off);
+    LED::setLED(LED::Color::red, LED::Action::on);
 }

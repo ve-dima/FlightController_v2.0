@@ -33,6 +33,7 @@ namespace AHRS
     Eigen::Quaternionf attitude = Eigen::Quaternionf::Identity();
     Eulerf eulerAttitude;
     float G = 1;
+    float tiltCos = 1;
 
     Eigen::Vector3f linearAcceleration;
     Eigen::Matrix3f P{
@@ -196,6 +197,11 @@ namespace AHRS
             eulerAttitude.yaw = std::atan2(siny_cosp, cosy_cosp);
         }
 
+        {
+            tiltCos = 2 * (1 - (attitude.x() * attitude.x() + attitude.y() * attitude.y())) - 1;
+            tiltCos = std::clamp(tiltCos, -1.f, 1.f);
+        }
+
         correctAcc(linearAcceleration.z(),
                    accelerometerNoise * accelerometerNoise);
         predictKalman(dT);
@@ -260,6 +266,7 @@ namespace AHRS
     Eigen::Quaternionf getFRD_Attitude() { return Eigen::Quaternionf(attitude.w(), attitude.x(), attitude.y(), -attitude.z()); }
     Eulerf getFRD_Euler() { return Eulerf{eulerAttitude.roll, eulerAttitude.pitch, -eulerAttitude.yaw}; }
     Eulerf getFRU_Euler() { return eulerAttitude; }
+    float getTiltCos() { return tiltCos; }
 
     Eigen::Vector3f getFRD_LinearAcceleration()
     {

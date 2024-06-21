@@ -39,7 +39,12 @@ namespace LED
         {false, 100},
     };
     constexpr Action_tick off[] = {
+        {false, 0},
         {false, UINT32_MAX},
+    };
+    constexpr Action_tick on[] = {
+        {true, 0},
+        {true, UINT32_MAX},
     };
 
     constexpr Action_desc actions[] = {
@@ -49,6 +54,7 @@ namespace LED
         {.actionTicks = blink, .actionCount = sizeof(blink) / sizeof(Action_tick)},
         {.actionTicks = fast_blink, .actionCount = sizeof(fast_blink) / sizeof(Action_tick)},
         {.actionTicks = off, .actionCount = sizeof(off) / sizeof(Action_tick)},
+        {.actionTicks = on, .actionCount = sizeof(on) / sizeof(Action_tick)},
     };
 
     uint8_t actionTickCounter = 0;

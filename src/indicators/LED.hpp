@@ -16,7 +16,8 @@ namespace LED
         double_short_blink,
         blink,
         fast_blink,
-        off
+        off,
+        on,
     };
 
     inline Color color = Color::off;
