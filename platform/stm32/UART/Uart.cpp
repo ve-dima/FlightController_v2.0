@@ -35,10 +35,12 @@ void UART::begin(uint32_t baudRate,
     usart->CR1 =
         USART_CR1_TE |
         USART_CR1_RE |
-        USART_CR1_IDLEIE;
+        USART_CR1_IDLEIE |
+        USART_CR1_TCIE |
+        USART_CR1_FIFOEN;
     usart->CR2 = 0;
-    usart->CR3 = USART_CR3_DMAR |
-                 USART_CR3_DMAT;
+    usart->CR3 |= USART_CR3_DMAR |
+                  USART_CR3_DMAT;
 
     if (swapRxTx)
         usart->CR2 |= USART_CR2_SWAP;
@@ -177,6 +179,7 @@ uint8_t UART::usart_start_tx_dma_transfer(void)
         tx_Stream->CMAR = (uint32_t)lwrb_get_linear_block_read_address(&usart_tx_rb);
 
         tx_Stream->CCR |= DMA_CCR_EN;
+        usart->CR1 |= USART_CR1_TCIE;
         started = 1;
     }
     return started;
@@ -190,6 +193,14 @@ void UART::uartIqrHandler()
         usart_rx_check();
         if (idleCallback != nullptr)
             idleCallback();
+    }
+
+    if (usart->ISR & USART_ISR_TC)
+    {
+        usart->CR1 &= ~USART_CR1_TCIE;
+        usart->ICR = USART_ICR_TCCF;
+        if (transferCompleteCallback != nullptr)
+            transferCompleteCallback();
     }
 }
 
@@ -216,4 +227,28 @@ void UART::txDmaIrqHandler()
         usart_tx_dma_current_len = 0;
         usart_start_tx_dma_transfer();
     }
+}
+
+void UART::setHalfDuplex(bool enable)
+{
+    if (enable)
+        usart->CR3 |= USART_CR3_HDSEL;
+    else
+        usart->CR3 &= ~USART_CR3_HDSEL;
+}
+
+void UART::setRXEnable(bool enable)
+{
+    if (enable)
+        usart->CR1 |= USART_CR1_RE;
+    else
+        usart->CR1 &= ~USART_CR1_RE;
+}
+
+void UART::setTXEnable(bool enable)
+{
+    if (enable)
+        usart->CR1 |= USART_CR1_TE;
+    else
+        usart->CR1 &= ~USART_CR1_TE;
 }

@@ -186,16 +186,15 @@ void setup()
     NVIC_EnableIRQ(DMA2_Channel2_IRQn);
 
     __enable_irq();
+    
     mav0Uart.setAutoSend(false);
     mav0Uart.begin(115'200);
     mav1Uart.setAutoSend(false);
     mav1Uart.begin(115'200);
     
-    debugUart.begin(115'200);
-
     EXTI->IMR1 |= EXTI_IMR1_IM0;
     EXTI->RTSR1 |= EXTI_RTSR1_RT0;
-    RC_UART.idleCallback = []()
+    rcUart.idleCallback = []()
     {
         EXTI->SWIER1 = EXTI_SWIER1_SWI0;
     };

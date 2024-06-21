@@ -75,5 +75,6 @@ class RC_parser
 {
 public:
     virtual bool parseData(uint8_t data[], size_t len, bool parityError, int16_t channels[], unsigned &channelCount, uint8_t &rssi, bool &signalAvailable) = 0;
-    virtual void sendTelemetry(uint8_t data[], uint8_t &count) {}
+    virtual bool sendTelemetry(uint8_t data[], size_t &count) { return false; }
+    virtual void sensorHandler() {}
 };

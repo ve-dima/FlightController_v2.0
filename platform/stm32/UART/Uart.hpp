@@ -80,10 +80,15 @@ public:
     void rxDmaIrqHandler();
     void txDmaIrqHandler();
 
+    void setHalfDuplex(bool);
+    void setRXEnable(bool);
+    void setTXEnable(bool);
+
     bool getParityErrorFlag() { return parityErrorFlag; }
     void clearParityErrorFlag() { parityErrorFlag = 0; }
 
     void (*idleCallback)(void) = nullptr;
+    void (*transferCompleteCallback)(void) = nullptr;
     void (*halfFullCallback)(void) = nullptr;
 };
 

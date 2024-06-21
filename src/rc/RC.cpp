@@ -6,6 +6,7 @@
 #include "RC.hpp"
 #include "S-Bus.hpp"
 #include "CRSF.hpp"
+#include "I-Bus.hpp"
 
 namespace RC
 {
@@ -196,15 +197,15 @@ namespace RC
     void enable()
     {
         checkValues();
-        RC_UART.end();
+        rcUart.end();
 
         switch (_selectedProtocol)
         {
         case ProtocolDetector::CRSF:
-            RC_UART.begin(420'000 >> 8);
+            rcUart.begin(420'000 >> 8);
             break;
         case ProtocolDetector::SBUS:
-            RC_UART.begin((100'000 >> 8),
+            rcUart.begin((100'000 >> 8),
                           UART::WordLen::nine, UART::StopBit::two, UART::ParityControl::even,
                           false, true, true);
             break;
@@ -223,10 +224,10 @@ namespace RC
 
     void callBackHandler()
     {
-        while (RC_UART.available())
+        while (rcUart.available())
         {
             uint8_t buff[64];
-            size_t count = RC_UART.readBytes(buff, std::min<size_t>(sizeof(buff), RC_UART.available()));
+            size_t count = rcUart.readBytes(buff, std::min<size_t>(sizeof(buff), rcUart.available()));
 
             if (_selectedProtocol == ProtocolDetector::not_connected or
                 static_cast<int>(_selectedProtocol) >= static_cast<int>(ProtocolDetector::__end))
@@ -237,11 +238,11 @@ namespace RC
             uint8_t rssi;
             bool signalAvailable;
 
-            if (parsers[static_cast<int>(_selectedProtocol) - 1]->parseData(buff, count, RC_UART.getParityErrorFlag(),
+            if (parsers[static_cast<int>(_selectedProtocol) - 1]->parseData(buff, count, rcUart.getParityErrorFlag(),
                                                                             ch, channelCount, rssi, signalAvailable) == true)
                 update(ch, channelCount, rssi, signalAvailable);
 
-            RC_UART.clearParityErrorFlag();
+            rcUart.clearParityErrorFlag();
         }
     }
 
