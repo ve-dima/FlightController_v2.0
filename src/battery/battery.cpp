@@ -15,7 +15,7 @@ namespace Battery
     float getVoltage() { return filteredVoltage; }
     float getVoltagePerCell() { return filteredVoltage / cellCount; }
 
-    void updateByADC(float voltage)
+    void updateVoltage(float voltage)
     {
         if (not std::isfinite(filteredVoltage))
         {

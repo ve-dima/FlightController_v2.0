@@ -6,8 +6,7 @@ namespace Battery
 
     float getVoltage();
     float getVoltagePerCell();
-
     float getPercent();
 
-    void updateByADC(float voltage);
+    void updateVoltage(float voltage);
 }
