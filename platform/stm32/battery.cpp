@@ -5,7 +5,6 @@
 
 namespace Battery
 {
-    constexpr float adcScale = 3.3 / ((1 << 12) - 1);
 
     void init()
     {
@@ -38,7 +37,7 @@ namespace Battery
 
         // Voltage, Current, VrefInt,
         ADC1->SQR1 = (15 << ADC_SQR1_SQ1_Pos) | (12 << ADC_SQR1_SQ2_Pos) | (18 << ADC_SQR1_SQ3_Pos) | (2 << ADC_SQR1_L_Pos);
-        ADC1->CFGR |= ADC_CFGR_CONT | ADC_CFGR_OVRMOD;
+        ADC1->CFGR |= ADC_CFGR_CONT;
         ADC1->IER = ADC_IER_EOCIE;
 
         NVIC_SetPriority(ADC1_2_IRQn, 1);

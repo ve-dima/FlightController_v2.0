@@ -7,7 +7,7 @@
 namespace Battery
 {
     constexpr float voltageFilter = 0.985;
-    int32_t cellCount = 4;
+    int32_t cellCount = 1;
 
     float filteredVoltage = NAN;
 
@@ -94,7 +94,7 @@ namespace Battery
         const std::pair<float, float> *lower = (upper == &percentTable[percentTableSize - 1] ? &percentTable[percentTableSize - 1] : upper + 1);
         const float t = 1 - ((upper->first - voltage) / (upper->first - lower->first));
 
-        return std::clamp<float>(lower->second + t * (upper->second - lower->second), 0, 1);
+        return std::clamp<float>(lower->second + t * (upper->second - lower->second), 0, 1) * 100;
     }
 
     PARAM_ADD(param::INT32, BAT1_N_CELLS, &cellCount);
