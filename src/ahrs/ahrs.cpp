@@ -1,6 +1,6 @@
 #include "ahrs.hpp"
 #include "atmosphere.hpp"
-#include "Math/math.hpp"
+#include "math/math.hpp"
 
 #include "Common.hpp"
 #include <algorithm>
