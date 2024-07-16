@@ -192,6 +192,7 @@ void setup()
     mav1Uart.setAutoSend(false);
     mav1Uart.begin(115'200);
     
+    
     EXTI->IMR1 |= EXTI_IMR1_IM0;
     EXTI->RTSR1 |= EXTI_RTSR1_RT0;
     rcUart.idleCallback = []()

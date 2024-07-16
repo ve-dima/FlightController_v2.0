@@ -307,11 +307,12 @@ void handler()
         mavlink_attitude_target_report(MAVLINK_COMM_0), mavlink_attitude_target_report(MAVLINK_COMM_1);
     }
 
-    for (static uint32_t highFreqTim = 0; millis() - highFreqTim > 100; highFreqTim = millis())
+    for (static uint32_t highFreqTim = 0; millis() - highFreqTim > 50; highFreqTim = millis())
     {
         mavlink_quat_report(MAVLINK_COMM_0), mavlink_quat_report(MAVLINK_COMM_1);
         mavlink_euler_report(MAVLINK_COMM_0), mavlink_euler_report(MAVLINK_COMM_1);
         mavlink_state_report(MAVLINK_COMM_0), mavlink_state_report(MAVLINK_COMM_1);
+        mavlink_attitude_target_report(MAVLINK_COMM_0), mavlink_attitude_target_report(MAVLINK_COMM_1);
     }
 
     while (mav0Uart.available())

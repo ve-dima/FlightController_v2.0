@@ -7,14 +7,15 @@
 #include "rc/RC.hpp"
 #include "param/param.hpp"
 #include "math/math.hpp"
+#include "ICM-20948/ICM-20948.hpp"
 #include <stm32g4xx.h>
 #include <numeric>
 
-float manualMaxTilt = 30 * (M_PI / 180);
+float manualMaxTilt = 45 * (M_PI / 180);
 float manualYawRate = 150 * (M_PI / 180);
-float acroRate = 600 * (M_PI / 180);
-float altitudeSetSpeed = 2;
-float maxOffsetCorrectionAngle = 5 * (M_PI / 180);
+// float acroRate = 600 * (M_PI / 180);
+// float altitudeSetSpeed = 2;
+float maxOffsetCorrectionAngle = 0 * (M_PI / 180);
 float maxTakeoffAngle = std::cos(15 * (M_PI / 180));
 
 Stabilize stabilizeMode;
@@ -23,7 +24,8 @@ bool Stabilize::needEnter(const char *&reason)
 {
     if (RC::channel(RC::ChannelFunction::ARMSWITCH) > 0.2 and
         RC::channel(RC::ChannelFunction::THROTTLE) < -0.9 and
-        AHRS::getTiltCos() > maxTakeoffAngle)
+        AHRS::getTiltCos() > maxTakeoffAngle and
+        ICM20948::isOK())
     {
         reason = "Manual switch";
         return true;
@@ -137,11 +139,13 @@ void Stabilize::altMode()
         targetAlt = AHRS::getZState()(0);
 
     if (not RC::inDZ(RC::ChannelFunction::THROTTLE))
-        targetAlt += RC::channel(RC::ChannelFunction::THROTTLE) * AHRS::getLastDT() * 0.5;
+        Control::setTargetThrust(getThrottleFromRC());
+    // targetAlt += RC::channel(RC::ChannelFunction::THROTTLE) * AHRS::getLastDT() * 0.5;
 
     Control::setTargetAttitude(getSPFromRC());
     Control::targetAltitude = targetAlt;
-    Control::trustMode = Control::TrustMode::ALTITUDE;
+    Control::targetVelocity = 0;
+    Control::trustMode = Control::TrustMode::VELOCITY;
 }
 
 void Stabilize::acroMode()

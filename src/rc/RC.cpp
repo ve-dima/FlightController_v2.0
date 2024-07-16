@@ -186,10 +186,10 @@ namespace RC
         _channelsAssign[static_cast<int>(ChannelFunction::PITCH)] = 2;
         _channelsAssign[static_cast<int>(ChannelFunction::THROTTLE)] = 3;
         _channelsAssign[static_cast<int>(ChannelFunction::YAW)] = 4;
-        _channelsAssign[static_cast<int>(ChannelFunction::ARMSWITCH)] = 7;
-        _channelsAssign[static_cast<int>(ChannelFunction::AUX_1)] = 8;
-        _channelsAssign[static_cast<int>(ChannelFunction::AUX_2)] = 6;
-        _channelsAssign[static_cast<int>(ChannelFunction::AUX_3)] = 5;
+        _channelsAssign[static_cast<int>(ChannelFunction::ARMSWITCH)] = 5;
+        _channelsAssign[static_cast<int>(ChannelFunction::AUX_1)] = 6;
+        _channelsAssign[static_cast<int>(ChannelFunction::AUX_2)] = 7;
+        _channelsAssign[static_cast<int>(ChannelFunction::AUX_3)] = 8;
         _channelsAssign[static_cast<int>(ChannelFunction::PARAM_1)] = 9;
         _channelsAssign[static_cast<int>(ChannelFunction::PARAM_2)] = 10;
     }

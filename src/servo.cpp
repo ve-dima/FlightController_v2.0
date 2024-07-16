@@ -14,8 +14,8 @@ namespace Servo
         1,
     };
     static constexpr float holderPosition[] = {
-        0,
-        1,
+        0.15,
+        0.85,
     };
 
     void handler()

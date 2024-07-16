@@ -39,7 +39,8 @@ public:
         integral += error * settings.I;
         const type_t pPart = error * settings.P;
         const type_t dPart = change * settings.D;
-        integral = std::clamp(integral, -settings.maxICoef, settings.maxICoef) * integralReducerFactor;
+        integral = std::clamp(integral, -settings.maxICoef, settings.maxICoef) *
+                   std::clamp<float>(integralReducerFactor, 0, 1);
 
         output = pPart + integral - dPart;
         output = std::clamp(output, -settings.max, settings.max);

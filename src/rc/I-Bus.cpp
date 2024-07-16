@@ -5,6 +5,7 @@
 #include "ahrs/ahrs.hpp"
 #include "modes/Modes.hpp"
 #include "modes/Disarm.hpp"
+#include "battery/battery.hpp"
 
 bool IBus::parseData(uint8_t data[], size_t dataLen, bool parityError, int16_t channels[], unsigned &channelCount, uint8_t &rssi, bool &signalAvailable)
 {
@@ -145,14 +146,15 @@ bool IBus::parseData(uint8_t data[], size_t dataLen, bool parityError, int16_t c
 void IBus::sensorHandler()
 {
 
-    sensorValues[external_voltage] = 16.0 * 100;
-    sensorValues[pressure] = AHRS::getPressure();
+    sensorValues[external_voltage] = Battery::getVoltage() * 100;
+    // sensorValues[pressure] = AHRS::getPressure();
+    sensorValues[batt_percentage] = Battery::getPercent();
+    sensorValues[avg_cell_voltage] = Battery::getVoltagePerCell() * 100;
 
     // const auto att = AHRS::getFRD_Euler();
-    // const auto z = AHRS::getZState();
-    // const auto acc = AHRS::getRawAcceleration();
-    // sensorValues[avg_cell_voltage] = 4.2 * 100;
-    // sensorValues[batt_percentage] = 4000;
+    // // const auto z = AHRS::getZState();
+    // // const auto acc = AHRS::getRawAcceleration();
+    // // sensorValues[batt_percentage] = 4000;
 
     // sensorValues[roll] = (int16_t)(att.roll * 100 * (180 / M_PI));
     // sensorValues[pitch] = (int16_t)(att.pitch * 100 * (180 / M_PI));

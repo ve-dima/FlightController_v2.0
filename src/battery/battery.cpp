@@ -7,13 +7,14 @@
 namespace Battery
 {
     constexpr float voltageFilter = 0.985;
-    int32_t cellCount = 1;
+    int32_t cellCount = 4;
+    float voltageDiv = 5.967;
 
     float filteredVoltage = NAN;
 
     unsigned getCellCount() { return cellCount; }
-    float getVoltage() { return filteredVoltage; }
-    float getVoltagePerCell() { return filteredVoltage / cellCount; }
+    float getVoltage() { return filteredVoltage * voltageDiv; }
+    float getVoltagePerCell() { return getVoltage() / cellCount; }
 
     void updateVoltage(float voltage)
     {
@@ -98,4 +99,5 @@ namespace Battery
     }
 
     PARAM_ADD(param::INT32, BAT1_N_CELLS, &cellCount);
+    PARAM_ADD(param::FLOAT, BAT1_V_DIV , &cellCount);
 }

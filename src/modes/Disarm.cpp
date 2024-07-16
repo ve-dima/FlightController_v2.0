@@ -10,6 +10,7 @@ Disarm disarmMode;
 void Disarm::onEnter()
 {
     Motor::disarm();
+    LED::setLED(LED::Color::red, LED::Action::on);
 }
 
 bool Disarm::needEnter(const char *&reason)
@@ -23,6 +24,11 @@ bool Disarm::needEnter(const char *&reason)
     else if (RC::state() != RC::State::ok)
     {
         reason = "Manual control loss";
+        return true;
+    }
+    else if (not ICM20948::isOK())
+    {
+        reason = "IMU not work";
         return true;
     }
     return false;

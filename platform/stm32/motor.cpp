@@ -78,11 +78,22 @@ namespace Motor
     extern float power[8];
     void updateOutput(unsigned motor)
     {
-        if (power[motor] > 0 and
-            motor < (sizeof(assignTable) / sizeof(assignTable[0])))
-            *assignTable[motor] = 1'000 + std::clamp<uint32_t>(power[motor] * 1'000, 0, 1'000);
-        else
-            *assignTable[motor] = 900;
+        if (motor < 4)
+        {
+            if (power[motor] > 0 and
+                motor < (sizeof(assignTable) / sizeof(assignTable[0])))
+                *assignTable[motor] = 1'000 + std::clamp<uint32_t>(power[motor] * 1'000, 0, 1'000);
+            else
+                *assignTable[motor] = 900;
+        }
+        else if (motor == 4 or motor == 5)
+        {
+            if (power[motor] > 0 and
+                motor < (sizeof(assignTable) / sizeof(assignTable[0])))
+                *assignTable[motor] = 1'000 + std::clamp<uint32_t>(power[motor] * 1'000, 0, 1'000);
+            else
+                *assignTable[motor] = 900;
+        }
     }
 
     void enable() { stateHandler(); }

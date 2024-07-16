@@ -3,12 +3,12 @@
 
 namespace AHRS
 {
-    float gyroscopeOffset[] = {-0.0095873801, -0.00426105782, -0.0149137024};
+    float gyroscopeOffset[] = {0, 0, 0};
     PARAM_ADD(param::FLOAT, CAL_GYRO_XOFF, &gyroscopeOffset[0]);
     PARAM_ADD(param::FLOAT, CAL_GYRO_YOFF, &gyroscopeOffset[1]);
     PARAM_ADD(param::FLOAT, CAL_GYRO_ZOFF, &gyroscopeOffset[2]);
 
-    float accelerometerOffset[] = {0, 0, 0.01};
+    float accelerometerOffset[] = {0, 0, 0};
     PARAM_ADD(param::FLOAT, CAL_ACC_XOFF, &accelerometerOffset[0]);
     PARAM_ADD(param::FLOAT, CAL_ACC_YOFF, &accelerometerOffset[1]);
     PARAM_ADD(param::FLOAT, CAL_ACC_ZOFF, &accelerometerOffset[2]);

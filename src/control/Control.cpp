@@ -102,7 +102,7 @@ namespace Control
         for (int i = 0; i < 4; i++)
             outPower.array[i] = std::clamp<float>(outPower.array[i] +
                                                       std::clamp<float>(targetThrust +
-                                                                            std::clamp<float>(autoHeightTrust, -0.5, 0.5),
+                                                                            std::clamp<float>(autoHeightTrust, -0.2, 0.2),
                                                                         0.1, 0.85),
                                                   minimalTrust, 1);
         for (int i = 0; i < 4; i++)
@@ -119,7 +119,8 @@ namespace Control
 
         for (int axis = 0; axis < 3; axis++)
         {
-            float iReduceFactor = 1 - (rateError[axis] * rateError[axis]) / iReducerMaxRate;
+            // float iReduceFactor = 1 - (rateError[axis] * rateError[axis]) / iReducerMaxRate;
+            float iReduceFactor = 1;
             if (iReduceFactor < 0 or targetThrust < 0.3)
                 iReduceFactor = 0;
             target[axis] = ratePid.pids[axis].calculate(rateError[axis], rateAcc[axis], iReduceFactor, dt);
@@ -136,34 +137,34 @@ namespace Control
         Eigen::Quaternionf qd = targetAttitude;
 
         // // // calculate reduced desired attitude neglecting vehicle's yaw to prioritize roll and pitch
-        // const Eigen::Vector3f e_z = dcm_z(attitude);
-        // const Eigen::Vector3f e_z_d = dcm_z(qd);
-        // Eigen::Quaternionf q_tiltError = from2vec(e_z, e_z_d);
+        const Eigen::Vector3f e_z = dcm_z(attitude);
+        const Eigen::Vector3f e_z_d = dcm_z(qd);
+        Eigen::Quaternionf q_tiltError = from2vec(e_z, e_z_d);
 
-        // if (std::abs(q_tiltError.x()) > (1.f - 1e-5f) or
-        //     std::abs(q_tiltError.y()) > (1.f - 1e-5f))
-        // {
-        //     // In the infinitesimal corner case where the vehicle and thrust have the completely opposite direction,
-        //     // full attitude control anyways generates no yaw input and directly takes the combination of
-        //     // roll and pitch leading to the correct desired yaw. Ignoring this case would still be totally safe and stable.
-        //     q_tiltError = qd;
-        // }
-        // else
-        // {
-        //     // transform rotation from current to desired thrust vector into a world frame reduced desired attitude
-        //     q_tiltError *= attitude;
-        // }
+        if (std::abs(q_tiltError.x()) > (1.f - 1e-5f) or
+            std::abs(q_tiltError.y()) > (1.f - 1e-5f))
+        {
+            // In the infinitesimal corner case where the vehicle and thrust have the completely opposite direction,
+            // full attitude control anyways generates no yaw input and directly takes the combination of
+            // roll and pitch leading to the correct desired yaw. Ignoring this case would still be totally safe and stable.
+            q_tiltError = qd;
+        }
+        else
+        {
+            // transform rotation from current to desired thrust vector into a world frame reduced desired attitude
+            q_tiltError *= attitude;
+        }
 
-        // // mix full and reduced desired attitude
-        // Eigen::Quaternionf q_mix = q_tiltError.inverse() * qd;
-        // // q_mix.canonicalize();
-        // // catch numerical problems with the domain of acosf and asinf
-        // q_mix.w() = std::clamp(q_mix.w(), -1.f, 1.f);
-        // q_mix.z() = std::clamp(q_mix.z(), -1.f, 1.f);
-        // qd = q_tiltError * Eigen::Quaternionf(std::cos(yawWeight * std::acos(q_mix.w())),
-        //                                       0,
-        //                                       0,
-        //                                       std::sin(yawWeight * std::asin(q_mix.z())));
+        // mix full and reduced desired attitude
+        Eigen::Quaternionf q_mix = q_tiltError.inverse() * qd;
+        // q_mix.canonicalize();
+        // catch numerical problems with the domain of acosf and asinf
+        q_mix.w() = std::clamp(q_mix.w(), -1.f, 1.f);
+        q_mix.z() = std::clamp(q_mix.z(), -1.f, 1.f);
+        qd = q_tiltError * Eigen::Quaternionf(std::cos(yawWeight * std::acos(q_mix.w())),
+                                              0,
+                                              0,
+                                              std::sin(yawWeight * std::asin(q_mix.z())));
 
         // quaternion attitude control law, qe is rotation from q to qd
 

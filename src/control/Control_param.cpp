@@ -10,34 +10,34 @@ namespace Control
                 .I = 0,
                 .D = 0,
                 .maxICoef = 0,
-                .max = 220,
+                .max = 220 * (M_PI / 180),
             },
             .pitch = {
                 .P = 6.5,
                 .I = 0,
                 .D = 0,
                 .maxICoef = 0,
-                .max = 220,
+                .max = 220 * (M_PI / 180),
             },
             .yaw = {
                 .P = 4.5,
                 .I = 0,
                 .D = 0,
                 .maxICoef = 0,
-                .max = 200,
+                .max = 200 * (M_PI / 180),
             }}};
     PIDSettings rateSettings = {
         .axis = {
             .roll = {
-                .P = 0.04,
-                .I = 0.0005,
+                .P = 0.025,
+                .I = 0.0004,
                 .D = 0.003,
                 .maxICoef = 0.20,
                 .max = 1,
             },
             .pitch = {
-                .P = 0.04,
-                .I = 0.0005,
+                .P = 0.025,
+                .I = 0.0004,
                 .D = 0.003,
                 .maxICoef = 0.20,
                 .max = 1,
@@ -49,17 +49,16 @@ namespace Control
                 .maxICoef = 0.20,
                 .max = 1,
             }}};
-            
+
     PIDf::Settings velocitySetings{
         .P = 0.3,
         .I = 0,
         .D = 0.001,
         .maxICoef = 0.1,
-        .max = 0.5,
+        .max = 0.2,
     };
 
-    PIDf::Settings positionSettings
-    {
+    PIDf::Settings positionSettings{
         .P = 1,
         .I = 0,
         .D = 0,

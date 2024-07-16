@@ -59,10 +59,10 @@ private:
     };
     static constexpr SensorInfo_t sensorList[] = {
         {0x03, 2}, // IBUS_MEAS_TYPE_EXTV
-        {0x41, 4}, // IBUS_MEAS_TYPE_PRES
+        // {0x41, 4}, // IBUS_MEAS_TYPE_PRES
 
-        // {0x04, 2}, // IBUS_MEAS_TYPE_CELL
-        // {0x06, 2}, // IBUS_MEAS_TYPE_FUEL
+        {0x04, 2}, // IBUS_MEAS_TYPE_CELL
+        {0x06, 2}, // IBUS_MEAS_TYPE_FUEL
 
         // {0x0f, 2}, // IBUS_MEAS_TYPE_ROLL
         // {0x10, 2}, // IBUS_MEAS_TYPE_PITCH
@@ -78,10 +78,10 @@ private:
     enum SensorList : unsigned
     {
         external_voltage,
-        pressure,
+        // pressure,
 
-        // avg_cell_voltage,
-        // batt_percentage,
+        avg_cell_voltage,
+        batt_percentage,
 
         // roll,
         // pitch,
