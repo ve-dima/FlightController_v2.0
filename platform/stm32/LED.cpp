@@ -1,4 +1,4 @@
-#include "indicators\LED.hpp"
+#include "indicators/LED.hpp"
 #include "SRT/SRT.hpp"
 #include <stm32g4xx.h>
 
